@@ -1,5 +1,8 @@
 # NetLock
 
+What is NetLock,
+NetLock is a siem/command control server that is meant to be deployed quickly and without a lot of work from the end user. The goal is to create a C2 server that gives blue team key insights into the landscape by documenting events happening around the network. It does this by using beacons which give event updates to the server using HTTPS. The server also hosts a web
+
 First time set up.
 
 ```sh

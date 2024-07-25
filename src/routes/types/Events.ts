@@ -5,7 +5,7 @@ type processEventType = "processCreated" | "processEnded";
 
 type systemEventType = "regEdit" | "kernel" | "interfaceUp" | "interfaceDown" | "interfaceIpChange";
 
-type userEventType = "userLoggedIn" | "userLoggedOut";
+type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted";
 
 export type event = processEventType | fileEventType | systemEventType | userEventType;
 

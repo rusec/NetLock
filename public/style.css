@@ -1,5 +1,5 @@
 body {
-    background-color: rgb(0, 133, 186);
+    background-color: #1a1c4a;
 }
 #root {
     /* display: flex;
@@ -16,11 +16,12 @@ body {
 .dashboard {
     display: flex;
     flex-direction: column;
-    background-color: #1c84ff;
+    background-color: #0a0d26;
     padding: 30px;
     border-radius: 8px;
     width: 90vw;
     border-style: none;
+    color: #ffffff;
     box-shadow: rgba(255, 255, 255, 0.26) 0 1px 2px inset;
 }
 .dash-header {
@@ -48,19 +49,19 @@ body {
 .dash-page-tab {
     box-shadow: rgba(255, 255, 255, 0.26) 0 1px 2px inset;
     padding: 14px;
-    background-color: #0a9d9d;
-    color: #fff;
+    background-color: #131a1d;
+    color: #b0bec5;
     border-radius: 4px 4px 0px 0px;
     cursor: pointer;
     transition: color 0.13s ease-in-out, background 0.13s ease-in-out, opacity 0.13s ease-in-out, box-shadow 0.13s ease-in-out;
 }
 .dash-page-tab:hover {
-    background-color: #087070;
+    background-color: #16143e;
 }
 .dash-page {
     position: relative;
     overflow: hidden;
-    background-color: #003e8a;
+    background-color: #191732;
     box-shadow: rgba(151, 65, 252, 0.2) 0 15px 30px -5px;
 }
 .home-container {
@@ -79,7 +80,7 @@ body {
 }
 
 .card-content {
-    background: rgb(79, 81, 225);
+    background: #05062d;
     border-radius: 17px;
     /* width: 100%;
     height: 100%; */

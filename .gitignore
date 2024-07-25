@@ -3,3 +3,4 @@ key.pem
 node_modules
 dist
 db
+!/src/db

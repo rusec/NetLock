@@ -43,11 +43,6 @@ export interface target {
     lastPing: number;
     dateAdded: number;
 }
-export interface targetLog {
-    fileLog: Array<fileAccessedEvent>;
-    regEditLog: Array<regEditChangeEvent>;
-    processCreation: Array<processCreationEvent>;
-}
 
 export interface initTarget extends target {
     id: undefined;

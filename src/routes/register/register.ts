@@ -38,6 +38,84 @@ const targetSchema = Joi.object({
     users: Joi.array().items(targetUserSchema).required(),
     apps: Joi.array().items(targetAppSchema).required(),
 });
+/**
+ * @swagger
+ * /register:
+ *   post:
+ *     security:
+ *       - bearerAuth: []
+ *     summary: Register a beacon
+ *     tags: [Targets]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - hostname
+ *               - os
+ *               - interfaces
+ *               - users
+ *               - apps
+ *             properties:
+ *               hostname:
+ *                 type: string
+ *                 description: The hostname of the beacon.
+ *               os:
+ *                 type: string
+ *                 description: The operating system of the beacon.
+ *               interfaces:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     ip:
+ *                       type: string
+ *                       description: The IP address of the interface.
+ *                     mac:
+ *                       type: string
+ *                       description: The MAC address of the interface.
+ *                     state:
+ *                       type: string
+ *                       description: The state of the interface.
+ *                       enum: [down, up]
+ *               users:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: The name of the user.
+ *               apps:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     name:
+ *                       type: string
+ *                       description: The name of the app.
+ *                     version:
+ *                       type: string
+ *                       description: The version of the app.
+ *     responses:
+ *       200:
+ *         description: The beacon was successfully registered.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                   description: The JWT token for the beacon.
+ *       400:
+ *         description: Invalid request or unable to register beacon.
+ *       401:
+ *         description: Unauthorized. The request does not include the correct authorization header.
+ */
+
 router.post("/register", isBeacon, async (req: Request, res: Response, next: NextFunction) => {
     let body = req.body as registerRequest;
 

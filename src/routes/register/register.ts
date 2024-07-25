@@ -40,7 +40,7 @@ const targetSchema = Joi.object({
 });
 /**
  * @swagger
- * /register:
+ * /api/beacon/register:
  *   post:
  *     security:
  *       - bearerAuth: []

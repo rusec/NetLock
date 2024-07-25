@@ -69,6 +69,65 @@ body {
     padding: 20px;
     gap: 20px;
 }
+.target-container {
+    display: flex;
+    padding: 20px;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+.interface-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.interface-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.interface-ip,
+.interface-mac,
+.interface-state {
+    margin-right: 10px;
+}
+.user-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.user-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.user-name,
+.user-last-login,
+.user-last-update,
+.user-logged-in {
+    margin-right: 10px;
+}
+.app-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+
+.app-info {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.app-name,
+.app-running,
+.app-version {
+    margin-right: 10px;
+}
+
 .card {
     width: fit-content;
     height: fit-content;

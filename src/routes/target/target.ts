@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { log } from "../../utils/output/debug";
 import { authenticate } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
-import { targetEvent, targetEventSchema } from "../types/Events";
+import { eventSchema, targetEvent } from "../types/Events";
 let router = Router({
     caseSensitive: true,
 });
@@ -96,7 +96,7 @@ let router = Router({
 //endpoint to parse out beacon events and creates a targetLogEvent and updates target info in database
 router.post("/event", authenticate, isBeacon, (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     let body = req.body as targetEvent;
-    let { error } = targetEventSchema.validate(body);
+    let { error } = eventSchema.validate(body);
     if (error) {
         return res.status(400).json({ status: "Invalid request", error: error.details });
     }

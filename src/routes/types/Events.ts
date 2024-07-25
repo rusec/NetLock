@@ -89,12 +89,12 @@ const targetFileEventSchema = targetEventSchema.keys({
 const targetSystemEventSchema = targetEventSchema.keys({
     systemfile: Joi.string().required(),
 });
-export {
-    targetEventSchema,
-    targetNetworkEventSchema,
-    targetFileEventSchema,
+const eventSchema = Joi.alternatives().try(
     targetProcessEventSchema,
-    targetRegEditEventSchema,
-    targetSystemEventSchema,
     targetUserEventSchema,
-};
+    targetNetworkEventSchema,
+    targetRegEditEventSchema,
+    targetFileEventSchema,
+    targetSystemEventSchema
+);
+export { eventSchema };

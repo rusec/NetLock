@@ -4,6 +4,7 @@ import { convertISOToHumanReadable } from "../utils/time";
 import Target from "./Target";
 import Home from "./pages/Home";
 import { TargetStreamProvider } from "../hooks/TargetsProvicer";
+import Targets from "./pages/Targets";
 interface targetUser {
     name: string;
     lastLogin: string;
@@ -66,7 +67,7 @@ function Dashboard() {
                 <div className="dash-page">
                     <TargetStreamProvider>
                         {Page === "Home" && <Home />}
-                        {/* {Page === "Targets" && targets && targets.map((target) => <Target target={target} />)} */}
+                        {Page === "Targets" && <Targets />}
                     </TargetStreamProvider>
                 </div>
             </div>

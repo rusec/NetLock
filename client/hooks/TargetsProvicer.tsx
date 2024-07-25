@@ -41,7 +41,7 @@ export const TargetStreamProvider = ({ children }: any) => {
 
                 return newState;
             });
-            setLastUpdatedID(target.id);
+            setLastUpdatedID(() => target.id);
         };
 
         return () => {

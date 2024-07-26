@@ -9,9 +9,21 @@ import { UserRouter } from "./routes/user/user";
 import { BeaconRegisterRouter } from "./routes/register/register";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
-
+import crypto from "crypto";
 const app = express();
-// app.use(helmet());
+app.use((req, res, next) => {
+    res.locals.cspNonce = crypto.randomBytes(32).toString("hex");
+    next();
+});
+app.use(
+    helmet({
+        contentSecurityPolicy: {
+            directives: {
+                scriptSrc: ["'self'", (req, res: any) => `'nonce-${res.locals.cspNonce}'`, "unsafe-eval"],
+            },
+        },
+    })
+);
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(express.json());
@@ -49,6 +61,7 @@ const options = {
     },
     apis: ["./dist/routes/**/*.js"],
 };
+
 const specs = swaggerJSDoc(options);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 app.get("/", (req: Request, res: Response, next: NextFunction): void => {

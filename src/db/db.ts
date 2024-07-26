@@ -152,7 +152,6 @@ class DataBase {
             totalLogging: 1,
             lastLogging: new Date().getTime(),
         };
-        console.log(userDoc);
         await this.db.put("user", userDoc);
         return true;
     }

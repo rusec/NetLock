@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { log } from "../../utils/output/debug";
 import { authenticate } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
-import { eventSchema, targetEvent } from "../types/Events";
+import { eventSchema, targetEvent, targetFileEvent } from "../types/Events";
 let router = Router({
     caseSensitive: true,
 });
@@ -99,5 +99,16 @@ router.post("/event", authenticate, isBeacon, (req: AuthenticatedRequest, res: R
     let { error } = eventSchema.validate(body);
     if (error) {
         return res.status(400).json({ status: "Invalid request", error: error.details });
+    }
+
+    switch (body.event) {
+        case "fileAccessed":
+            let data = body as targetFileEvent;
+
+            break;
+        case "fileCreated":
+            break;
+        default:
+            break;
     }
 });

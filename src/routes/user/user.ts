@@ -324,6 +324,7 @@ router.post("/login", async (req: Request, res: Response) => {
         id: "user",
         ip: req.ip || "unknown",
         isBeacon: false,
+        agent: req.headers["user-agent"] || "unknown",
     };
 
     let signedJwt = await createToken(userTok);

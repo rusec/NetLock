@@ -14,6 +14,7 @@ export interface userToken extends tokenInfo {
     id: string;
     dateAdded: string;
     ip: string;
+    agent: string;
 }
 
 export interface AuthenticatedRequest extends Request {

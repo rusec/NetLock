@@ -208,6 +208,38 @@ router.get("/targets/:target", authenticate, validateUser, async (req: Request, 
     if (!targetData) return res.status(400).json({ status: "unable to find target" });
     return res.status(200).json(targetData.data);
 });
+/**
+ * @swagger
+ * /api/user/targets/{target}:
+ *   delete:
+ *     summary: Get a specific target by ID
+ *     tags: [Targets]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: target
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: The ID of the target.
+ *     responses:
+ *       200:
+ *         description: The target was successfully deleted.
+ *
+ *       400:
+ *         description: Unable to find target.
+ *       401:
+ *         description: Unauthorized.
+ */
+router.delete("/targets/:target", authenticate, validateUser, async (req: Request, res: Response) => {
+    if (!req.params.target) return res.status(400).json({ status: "unable to find target" });
+    let targetData = await db.getTarget(req.params.target);
+    if (!targetData) return res.status(400).json({ status: "unable to find target" });
+    await targetData.delTarget();
+    return res.status(200).json({ status: "target deleted" });
+});
+
 // gets all logs for targets and streams any new logs
 router.get("/logs/stream", authenticate, validateUser, async (req: Request, res: Response) => {
     res.setHeader("Content-Type", "text/event-stream");

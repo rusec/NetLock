@@ -19,6 +19,7 @@ const AuthContext: React.Context<AuthObject> = createContext({
 const AuthProvider = ({ children }: any) => {
     const [token, setToken] = useState(localStorage.getItem("site") || "");
     const navigate = useNavigate();
+
     const loginAction = async (data: { password: string }) => {
         try {
             const response = await fetch("/api/user/login", {
@@ -29,7 +30,6 @@ const AuthProvider = ({ children }: any) => {
                 body: JSON.stringify(data),
             });
             const res = await response.json();
-            console.log(res);
             if (res.token) {
                 setToken(res.token);
                 localStorage.setItem("site", res.token);

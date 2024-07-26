@@ -110,6 +110,10 @@ class TargetData {
         }
         return logs;
     }
+    async delTarget() {
+        await this.logs.clear();
+        await this.db.del(this.id);
+    }
 }
 class DataBase {
     db: Level<string, any>;

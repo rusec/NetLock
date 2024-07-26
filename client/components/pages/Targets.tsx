@@ -6,7 +6,7 @@ import { convertISOToHumanReadable } from "../../utils/time";
 type Props = {};
 
 function Targets({}: Props) {
-    const { targets, lastUpdatedID } = useTargetStream();
+    const { targets, lastUpdatedID, deleteTargetAction } = useTargetStream();
     const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
     return (
         <div className="dash-page">
@@ -15,14 +15,23 @@ function Targets({}: Props) {
                     targets.map((target) => (
                         <div className="card">
                             <div className="card-content">
-                                <div className="card-title"></div>
+                                <div className="card-btn-container">
+                                    <span
+                                        className="card-button delete"
+                                        onClick={() => {
+                                            deleteTargetAction(target.id);
+                                        }}
+                                    >
+                                        Delete
+                                    </span>
+                                </div>
+                                <div className="card-title">
+                                    {" "}
+                                    {target.hostname} ({target.os})
+                                </div>
                                 <div className="card-value">
                                     <div>
                                         <div className="target-front">
-                                            <h2>
-                                                {target.hostname} ({target.os})
-                                            </h2>
-
                                             <h3>Interfaces</h3>
                                             <div className="interface-container">
                                                 {target.interfaces.map((intf, index) => (

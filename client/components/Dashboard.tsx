@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../hooks/AuthProvider";
-import { convertISOToHumanReadable } from "../utils/time";
 import Target from "./Target";
 import Home from "./pages/Home";
 import { TargetStreamProvider } from "../hooks/TargetsProvicer";
 import Targets from "./pages/Targets";
+
 interface targetUser {
     name: string;
     lastLogin: string;
@@ -42,7 +42,7 @@ function Dashboard() {
     return (
         <div className="dashboard">
             <div className="dash-header">
-                <h1>Dashboard</h1>
+                <h1 className="text-3xl font-bold underline">Dashboard</h1>
                 <div className="dash-header-nav-button">
                     <button className="dash-button" onClick={() => {}}>
                         resetPassword

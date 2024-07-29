@@ -5,6 +5,7 @@ import AuthProvider, { useAuth } from "./hooks/AuthProvider";
 import PrivateRoute from "./router/route";
 import React from "react";
 import Register from "./components/Register";
+import "./styles/index.css";
 function App() {
     return (
         <div className="App">

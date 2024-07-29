@@ -1,6 +1,6 @@
-function convertISOToHumanReadable(isoString: string): string {
-    const date = new Date(isoString);
+function convertDateToHumanReadable(value: string | number): string {
+    const date = new Date(value);
     return date.toLocaleString();
 }
 
-export { convertISOToHumanReadable };
+export { convertDateToHumanReadable };

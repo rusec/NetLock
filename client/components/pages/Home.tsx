@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { target } from "../Dashboard";
 import { useTargetStream } from "../../hooks/TargetsProvicer";
 import { convertISOToHumanReadable } from "../../utils/time";
+import Target from "../Target/Target";
 
 type Props = {
     // targets: target[];
@@ -35,72 +36,35 @@ function Home({}: Props) {
     }
 
     const info = parseHomeInfo();
-
     return (
-        <div className="dash-page">
-            <div className="home-container">
-                <div className="card">
-                    <div className="card-content">
-                        <div className="card-title">Targets</div>
-                        <div className="card-value-number">{info.targets}</div>
+        <div className="p-7 flex">
+            <div className="stats-container flex flex-wrap gap-4 flex-1 p-4 bg-base-200">
+                <div className="stats shadow flex-1">
+                    <div className="stat">
+                        <div className="stat-title">Targets</div>
+                        <div className="stat-value">{info.targets}</div>
+                        <div className="stat-desc">amount of targets</div>
                     </div>
                 </div>
-                <div className="card">
-                    <div className="card-content">
-                        <div className="card-title">Users</div>
-                        <div className="card-value-number">{info.users}</div>
+                <div className="stats shadow flex-1">
+                    <div className="stat">
+                        <div className="stat-title">Users</div>
+                        <div className="stat-value">{info.users}</div>
+                        <div className="stat-desc">amount of users</div>
                     </div>
                 </div>
-                <div className="card">
-                    <div className="card-content">
-                        <div className="card-title">IPS in use</div>
-                        <div className="card-value">
+                <div className="stats shadow flex-1">
+                    <div className="stat">
+                        <div className="stat-title">IPS</div>
+                        <div className="stat-value">
                             {info.ips.map((ip) => (
                                 <div>{ip}</div>
                             ))}
                         </div>
+                        <div className="stat-desc">ip addresses in use</div>
                     </div>
                 </div>
-                <div className="card">
-                    <div className="card-content">
-                        <div className="card-title">Last Updated</div>
-                        <div className="card-value">
-                            {lastUpdatedTarget && (
-                                <div>
-                                    <div className="target-front">
-                                        <h2>
-                                            {lastUpdatedTarget.hostname} ({lastUpdatedTarget.os})
-                                        </h2>
-
-                                        <h3>Interfaces</h3>
-                                        {lastUpdatedTarget.interfaces.map((intf, index) => (
-                                            <p key={index}>
-                                                IP: {intf.ip}, MAC: {intf.mac}, State: {intf.state}
-                                            </p>
-                                        ))}
-                                        <h3>Users</h3>
-                                        {lastUpdatedTarget.users.map((user, index) => (
-                                            <p key={index}>
-                                                Name: {user.name}, Last Login: {user.lastLogin}, Last Update: {user.lastUpdate}, Logged In:{" "}
-                                                {user.loggedIn ? "Yes" : "No"}
-                                            </p>
-                                        ))}
-                                        <h3>Apps</h3>
-                                        {lastUpdatedTarget.apps.map((app, index) => (
-                                            <p key={index}>
-                                                Name: {app.name}, Running: {app.running ? "Yes" : "No"}, Version: {app.version}
-                                            </p>
-                                        ))}
-                                    </div>
-                                    <div className="target-back">
-                                        <p>Last Ping: {convertISOToHumanReadable(lastUpdatedTarget.lastPing)}</p>
-                                        <p>Date Added: {convertISOToHumanReadable(lastUpdatedTarget.dateAdded)}</p>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
+                {lastUpdatedTarget && <Target target={lastUpdatedTarget} />}
             </div>
         </div>
     );

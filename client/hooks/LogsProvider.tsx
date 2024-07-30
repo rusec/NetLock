@@ -18,22 +18,24 @@ export interface targetEvent {
     timestamp: number;
     description: string;
 }
-interface LogContext {
-    logs: targetLogEvent[];
-    lastUpdatedID: string;
-
-    getLogBy: (options: { id?: string | string[]; event?: event | event[] }) => targetLogEvent[];
-}
 export interface targetLogEvent extends targetEvent {
     message: string;
     id: string;
     targetId: string;
     argent: boolean;
 }
+interface LogContext {
+    logs: targetLogEvent[];
+    lastUpdatedID: targetLogEvent | undefined;
+    allEventTypes: event[];
+    getLogBy: (options: { id?: string | string[]; event?: event | event[] }) => targetLogEvent[];
+}
+
 // Create a Context object
 const LogStreamContext = createContext<LogContext>({
     logs: [],
-    lastUpdatedID: "",
+    lastUpdatedID: undefined,
+    allEventTypes: [],
     getLogBy: (options: { id?: string | string[]; event?: event | event[] }) => [],
 });
 
@@ -50,8 +52,27 @@ type Props = {
 export const LogStreamProvider = ({ setAlert, children }: Props) => {
     const { token } = useAuth(); // get the token from useAuth
     const [logs, setLogs] = useState<targetLogEvent[]>([]);
-    const [lastUpdatedID, setLastUpdatedID] = useState<string>("");
-
+    const [lastUpdatedID, setLastUpdatedID] = useState<targetLogEvent>();
+    // Create an array of all event types
+    const allEventTypes: event[] = [
+        "fileAccessed",
+        "fileCreated",
+        "fileDeleted",
+        "filePermission",
+        "processCreated",
+        "processEnded",
+        "regEdit",
+        "kernel",
+        "config",
+        "interfaceUp",
+        "interfaceDown",
+        "interfaceIpChange",
+        "userLoggedIn",
+        "userLoggedOut",
+        "userCreated",
+        "userDeleted",
+        "userGroupChange",
+    ];
     useEffect(() => {
         const source = new EventSource("/api/user/logs/stream" + `?token=${token}`);
 
@@ -67,7 +88,7 @@ export const LogStreamProvider = ({ setAlert, children }: Props) => {
                 return newState.sort((a, b) => a.timestamp - b.timestamp);
             });
 
-            setLastUpdatedID(() => log.id);
+            setLastUpdatedID(() => log);
         };
 
         return () => {
@@ -91,7 +112,7 @@ export const LogStreamProvider = ({ setAlert, children }: Props) => {
 
         return filteredLogs;
     };
-    const value = { logs, lastUpdatedID, getLogBy };
+    const value = { logs, lastUpdatedID, getLogBy, allEventTypes };
 
     return <LogStreamContext.Provider value={value}>{children}</LogStreamContext.Provider>;
 };

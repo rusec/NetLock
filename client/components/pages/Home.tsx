@@ -40,52 +40,54 @@ function Home({}: Props) {
 
     const info = parseHomeInfo();
     return (
-        <div className="p-7">
-            <div className="flex">
-                <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 bg-base-200">
-                    <div className="stats shadow flex-1">
-                        <div className="stat">
-                            <div className="stat-title">Targets</div>
-                            <div className="stat-value">{info.targets}</div>
-                            <div className="stat-desc">amount of targets</div>
+        <div className="px-7 pr-7 pb-7">
+            <div className="bg-base-200 shadow">
+                <div className="flex">
+                    <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 ">
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">Targets</div>
+                                <div className="stat-value">{info.targets}</div>
+                                <div className="stat-desc">amount of targets</div>
+                            </div>
                         </div>
-                    </div>
-                    <div className="stats shadow flex-1">
-                        <div className="stat">
-                            <div className="stat-title">Users</div>
-                            <div className="stat-value">{info.users}</div>
-                            <div className="stat-desc">amount of users</div>
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">Users</div>
+                                <div className="stat-value">{info.users}</div>
+                                <div className="stat-desc">amount of users</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="flex">
-                <div className="stats-container flex flex-wrap gap-4 flex-1 p-4 bg-base-200">
-                    <div className="stats shadow flex-1">
-                        <div className="stat relative">
-                            <div className="stat-title">Last Updated</div>
-                            {lastUpdatedTarget && <Target fillContainer={true} target={lastUpdatedTarget} />}
-                            <div className="stat-desc">Last updated target</div>
-                        </div>
-                    </div>
-
-                    <div className="stats shadow flex-1">
-                        <div className="stat">
-                            <div className="stat-title">IPS</div>
-                            <div className="stat-value font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
-                                {info.ips.map((ip) => (
-                                    <span
-                                        key={ip.value}
-                                        className={`px-2 py-1 rounded ${
-                                            ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"
-                                        }`}
-                                        title={ip.state}
-                                    >
-                                        {ip.value}
-                                    </span>
-                                ))}
+                <div className="flex">
+                    <div className="stats-container flex flex-wrap gap-4 flex-1 p-4 ">
+                        <div className="stats shadow flex-1">
+                            <div className="stat relative">
+                                <div className="stat-title">Last Updated</div>
+                                {lastUpdatedTarget && <Target fillContainer={true} target={lastUpdatedTarget} />}
+                                <div className="stat-desc">Last updated target</div>
                             </div>
-                            <div className="stat-desc">ip addresses in use</div>
+                        </div>
+
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">IPS</div>
+                                <div className="stat-value font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
+                                    {info.ips.map((ip) => (
+                                        <span
+                                            key={ip.value}
+                                            className={`px-2 py-1 rounded ${
+                                                ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"
+                                            }`}
+                                            title={ip.state}
+                                        >
+                                            {ip.value}
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="stat-desc">ip addresses in use</div>
+                            </div>
                         </div>
                     </div>
                 </div>

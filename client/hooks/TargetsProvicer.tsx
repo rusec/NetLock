@@ -6,6 +6,11 @@ interface TargetContext {
     targets: target[];
     lastUpdatedID: string;
     deleteTargetAction: (data: string) => Promise<void>;
+    getTargetsByIdAndName: () => {
+        name: string;
+        id: string;
+    }[];
+    getTargetNameByID: (id: string) => string;
 }
 
 // Create a Context object
@@ -13,6 +18,8 @@ const TargetStreamContext = createContext<TargetContext>({
     targets: [],
     lastUpdatedID: "",
     deleteTargetAction: async (data: string) => {},
+    getTargetsByIdAndName: () => [],
+    getTargetNameByID: (id: string) => "",
 });
 
 // Create a custom hook that allows easy access to the Context
@@ -25,6 +32,11 @@ export const TargetStreamProvider = ({ children }: any) => {
     const { token } = useAuth(); // get the token from useAuth
     const [targets, setTargets] = useState<target[]>([]);
     const [lastUpdatedID, setLastUpdatedID] = useState<string>("");
+    const getTargetNameByID = (id: string) => {
+        const t = targets.find((v) => v.id === id);
+        if (!t) return "not found";
+        return t.hostname;
+    };
     const deleteTargetAction = async (data: string) => {
         try {
             const response = await fetch("/api/user/targets/" + data, {
@@ -69,8 +81,12 @@ export const TargetStreamProvider = ({ children }: any) => {
             source.close();
         };
     }, [token]); // add token as a dependency
-
-    const value = { targets, lastUpdatedID, deleteTargetAction };
+    const getTargetsByIdAndName = () => {
+        return targets.map((t) => {
+            return { name: t.hostname, id: t.id };
+        });
+    };
+    const value = { targets, lastUpdatedID, deleteTargetAction, getTargetsByIdAndName, getTargetNameByID };
 
     return <TargetStreamContext.Provider value={value}>{children}</TargetStreamContext.Provider>;
 };

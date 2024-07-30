@@ -6,6 +6,7 @@ import Targets from "./pages/Targets";
 import Nav from "./Nav/Nav";
 import Alert, { alert } from "./models/Alert";
 import { LogStreamProvider } from "../hooks/LogsProvider";
+import Logs from "./pages/Logs";
 
 interface targetUser {
     name: string;
@@ -48,6 +49,7 @@ function Dashboard() {
                     <LogStreamProvider setAlert={setAlertMessage}>
                         {Page === "Home" && <Home />}
                         {Page === "Targets" && <Targets />}
+                        {Page === "Logs" && <Logs />}
                     </LogStreamProvider>
                 </TargetStreamProvider>
             </div>

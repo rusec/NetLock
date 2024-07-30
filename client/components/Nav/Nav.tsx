@@ -1,9 +1,10 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { useAuth } from "../../hooks/AuthProvider";
+import { Page } from "../Dashboard";
 
 type Props = {
-    Page: string;
-    SetPage: (string) => void;
+    Page: Page;
+    SetPage: Dispatch<SetStateAction<Page>>;
 };
 
 export default function Nav({ Page, SetPage }: Props) {

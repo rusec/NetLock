@@ -60,7 +60,7 @@ export const TargetStreamProvider = ({ children }: any) => {
                     newState.push(target);
                 }
 
-                return newState.sort((a, b) => a.hostname.localeCompare(b.hostname));
+                return newState.sort((a, b) => a.hostname.localeCompare(b.hostname, undefined, { sensitivity: "base" }));
             });
             setLastUpdatedID(() => target.id);
         };

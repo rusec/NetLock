@@ -1,16 +1,22 @@
 import React from "react";
 import { target } from "../Dashboard";
 import { convertDateToHumanReadable } from "../../utils/time";
+import { useTargetStream } from "../../hooks/TargetsProvicer";
 
-type Props = { target: target };
+type Props = { target: target; fillContainer: boolean };
 
-export default function Target({ target }: Props) {
+export default function Target({ target, fillContainer }: Props) {
+    const { deleteTargetAction } = useTargetStream();
+
     return (
-        <div className="bg-white p-4 rounded shadow-md w-full md:w-1/2 lg:w-1/3 xl:w-1/4">
+        <div className={"bg-neutral p-4 rounded shadow-md w-full relative " + (fillContainer ? "" : "md:w-1/2 lg:w-1/3 xl:w-1/4")}>
+            <button className="btn btn-xs btn-warning right-3 bottom-3 absolute" onClick={() => deleteTargetAction(target.id)}>
+                Delete
+            </button>
             <h2 className="text-lg font-semibold mb-2">{target.hostname}</h2>
-            <p className="text-gray-600 mb-4">{target.os}</p>
-            <p className="text-gray-600 mb-4">Date Added: {convertDateToHumanReadable(target.dateAdded)}</p>
-            <p className="text-gray-600 mb-4">Last Updated: {convertDateToHumanReadable(target.lastPing)}</p>
+            <p className="neutral-content mb-4">{target.os}</p>
+            <p className="neutral-content mb-4">Date Added: {convertDateToHumanReadable(target.dateAdded)}</p>
+            <p className="neutral-content mb-4">Last Updated: {convertDateToHumanReadable(target.lastPing)}</p>
             <div className="flex flex-wrap gap-2 flex-col">
                 <div>
                     <span className="mr-1">Interfaces:</span>

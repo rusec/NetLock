@@ -4,6 +4,8 @@ import Home from "./pages/Home";
 import { TargetStreamProvider } from "../hooks/TargetsProvicer";
 import Targets from "./pages/Targets";
 import Nav from "./Nav/Nav";
+import Alert, { alert } from "./models/Alert";
+import { LogStreamProvider } from "../hooks/LogsProvider";
 
 interface targetUser {
     name: string;
@@ -35,18 +37,25 @@ export interface target {
 export type Page = "Home" | "Targets" | "Logs";
 
 function Dashboard() {
-    const auth = useAuth();
-
     const [Page, setPage] = useState<Page>("Home");
+    const [AlertMessage, setAlertMessage] = useState<alert | false>(false);
     return (
-        <div>
+        <div className="relative">
+            {AlertMessage && <Alert Alert={AlertMessage} setAlert={setAlertMessage} />}
             <Nav Page={Page} SetPage={setPage} />
-            <div className="dash-page">
+            <div>
                 <TargetStreamProvider>
-                    {Page === "Home" && <Home />}
-                    {Page === "Targets" && <Targets />}
+                    <LogStreamProvider setAlert={setAlertMessage}>
+                        {Page === "Home" && <Home />}
+                        {Page === "Targets" && <Targets />}
+                    </LogStreamProvider>
                 </TargetStreamProvider>
             </div>
+            <footer className="footer footer-center bg-base-300 text-base-content p-4">
+                <aside>
+                    <p>Copyright © {new Date().getFullYear()} - All right reserved by RUSEC</p>
+                </aside>
+            </footer>
         </div>
     );
 }

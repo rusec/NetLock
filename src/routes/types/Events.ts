@@ -52,6 +52,9 @@ export interface targetSystemEvent extends targetEvent {
 export interface targetLogEvent extends targetEvent {
     message: string;
     id: string;
+    targetId: string;
+    // logs the event as argent and needs to be looked at
+    argent: boolean;
 }
 
 const fileEventType = Joi.string().valid("fileAccessed", "fileCreated", "fileDeleted", "filePermission");

@@ -41,7 +41,7 @@ function Home({}: Props) {
     const info = parseHomeInfo();
     return (
         <div className="p-7">
-            <div className="flex ">
+            <div className="flex">
                 <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 bg-base-200">
                     <div className="stats shadow flex-1">
                         <div className="stat">
@@ -62,9 +62,9 @@ function Home({}: Props) {
             <div className="flex">
                 <div className="stats-container flex flex-wrap gap-4 flex-1 p-4 bg-base-200">
                     <div className="stats shadow flex-1">
-                        <div className="stat">
+                        <div className="stat relative">
                             <div className="stat-title">Last Updated</div>
-                            {lastUpdatedTarget && <Target target={lastUpdatedTarget} />}
+                            {lastUpdatedTarget && <Target fillContainer={true} target={lastUpdatedTarget} />}
                             <div className="stat-desc">Last updated target</div>
                         </div>
                     </div>

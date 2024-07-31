@@ -38,12 +38,18 @@ export interface target {
 export type Page = "Home" | "Targets" | "Logs";
 
 function Dashboard() {
-    const [Page, setPage] = useState<Page>("Home");
+    const [Page, setPage] = useState<Page>((localStorage.getItem("Page") || "Home") as Page);
     const [AlertMessage, setAlertMessage] = useState<alert | false>(false);
     return (
         <div className="relative">
             {AlertMessage && <Alert Alert={AlertMessage} setAlert={setAlertMessage} />}
-            <Nav Page={Page} SetPage={setPage} />
+            <Nav
+                Page={Page}
+                SetPage={(value) => {
+                    localStorage.setItem("Page", value.toString());
+                    setPage(value);
+                }}
+            />
             <div>
                 <TargetStreamProvider>
                     <LogStreamProvider setAlert={setAlertMessage}>

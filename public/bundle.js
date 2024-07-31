@@ -46798,11 +46798,14 @@ const Alert_1 = __importDefault(__webpack_require__(/*! ./models/Alert */ "./cli
 const LogsProvider_1 = __webpack_require__(/*! ../hooks/LogsProvider */ "./client/hooks/LogsProvider.tsx");
 const Logs_1 = __importDefault(__webpack_require__(/*! ./pages/Logs */ "./client/components/pages/Logs.tsx"));
 function Dashboard() {
-    const [Page, setPage] = (0, react_1.useState)("Home");
+    const [Page, setPage] = (0, react_1.useState)((localStorage.getItem("Page") || "Home"));
     const [AlertMessage, setAlertMessage] = (0, react_1.useState)(false);
     return (react_1.default.createElement("div", { className: "relative" },
         AlertMessage && react_1.default.createElement(Alert_1.default, { Alert: AlertMessage, setAlert: setAlertMessage }),
-        react_1.default.createElement(Nav_1.default, { Page: Page, SetPage: setPage }),
+        react_1.default.createElement(Nav_1.default, { Page: Page, SetPage: (value) => {
+                localStorage.setItem("Page", value.toString());
+                setPage(value);
+            } }),
         react_1.default.createElement("div", null,
             react_1.default.createElement(TargetsProvicer_1.TargetStreamProvider, null,
                 react_1.default.createElement(LogsProvider_1.LogStreamProvider, { setAlert: setAlertMessage },

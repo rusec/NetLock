@@ -47660,6 +47660,8 @@ const LogStreamProvider = ({ setAlert, children }) => {
         "config",
         "interfaceUp",
         "interfaceDown",
+        "interfaceCreated",
+        "interfaceDeleted",
         "interfaceIpChange",
         "userLoggedIn",
         "userLoggedOut",

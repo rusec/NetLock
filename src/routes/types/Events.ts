@@ -4,7 +4,15 @@ type fileEventType = "fileAccessed" | "fileCreated" | "fileDeleted" | "filePermi
 
 type processEventType = "processCreated" | "processEnded";
 
-type systemEventType = "regEdit" | "kernel" | "config" | "interfaceUp" | "interfaceDown" | "interfaceIpChange";
+type systemEventType =
+    | "regEdit"
+    | "kernel"
+    | "config"
+    | "interfaceCreated"
+    | "interfaceDeleted"
+    | "interfaceUp"
+    | "interfaceDown"
+    | "interfaceIpChange";
 
 type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted" | "userGroupChange";
 
@@ -22,7 +30,7 @@ export interface targetProcessEvent extends targetEvent {
 }
 export interface targetUserEvent extends targetEvent {
     user: string;
-    loggedIn: string;
+    loggedIn: boolean;
 }
 export interface targetNetworkEvent extends targetEvent {
     mac: string;
@@ -56,10 +64,23 @@ export interface targetLogEvent extends targetEvent {
     // logs the event as urgent and needs to be looked at
     urgent: boolean;
 }
+export interface LogEvent extends targetEvent {
+    message: string;
+    urgent: boolean;
+}
 
 const fileEventType = Joi.string().valid("fileAccessed", "fileCreated", "fileDeleted", "filePermission");
 const processEventType = Joi.string().valid("processCreated", "processEnded");
-const systemEventType = Joi.string().valid("regEdit", "kernel", "config", "interfaceUp", "interfaceDown", "interfaceIpChange");
+const systemEventType = Joi.string().valid(
+    "regEdit",
+    "kernel",
+    "config",
+    "interfaceUp",
+    "interfaceDown",
+    "interfaceIpChange",
+    "interfaceCreated",
+    "interfaceDeleted"
+);
 const userEventType = Joi.string().valid("userLoggedIn", "userLoggedOut", "userCreated", "userDeleted", "userGroupChange");
 
 const event = Joi.alternatives().try(fileEventType, processEventType, systemEventType, userEventType);

@@ -5,7 +5,7 @@ import { DbUser, UserDocRequest } from "./types/db";
 import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
-import { event, targetEvent, targetLogEvent } from "../routes/types/Events";
+import { event, LogEvent, targetEvent, targetLogEvent } from "../routes/types/Events";
 import { removeUUIDFromString } from "./utils/utils";
 
 type dbEventTypes = {
@@ -20,7 +20,7 @@ const databaseEventEmitter: EventEmitter<dbEventTypes> = new EventEmitter({
 // Note see if theres problems with how node handles promises and wrapping the data get and put functions in another promise
 
 // It might create race conditions
-
+// Need to add create and delete for interfaces apps and users
 class TargetData {
     data: target;
     db: AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>;
@@ -65,6 +65,46 @@ class TargetData {
         this.data.interfaces[index].state = state;
         await this._updateData();
     }
+    async addInterface(mac: string, ip: string, state: "down" | "up") {
+        let result = await this._getCurrData();
+        if (!result) return;
+        let index = this.data.interfaces.findIndex((i) => i.mac == mac);
+        if (index != -1) return false;
+        this.data.interfaces.push({
+            ip: ip,
+            mac: mac,
+            state: state,
+            timestamp: new Date().getTime(),
+        });
+        await this._updateData();
+    }
+    async updateInterfaceIP(mac: string, ip: string) {
+        let result = await this._getCurrData();
+        if (!result) return;
+        let index = this.data.interfaces.findIndex((i) => i.mac == mac);
+        if (index == -1) return false;
+
+        this.data.interfaces[index].ip = ip;
+        await this._updateData();
+    }
+    async addUser(
+        username: string,
+        options: {
+            loggedIn: boolean;
+        }
+    ) {
+        let result = await this._getCurrData();
+        if (!result) return;
+        let index = this.data.users.findIndex((i) => i.name == username);
+        if (index != -1) return false;
+        this.data.users.push({
+            lastLogin: options.loggedIn ? new Date().getTime() : new Date(0).getTime(),
+            lastUpdate: new Date().getTime(),
+            loggedIn: options.loggedIn,
+            name: username,
+        });
+        await this._updateData();
+    }
     async updateUser(
         username: string,
         options: {
@@ -94,11 +134,13 @@ class TargetData {
 
         await this._updateData();
     }
-    async addLog(event: targetLogEvent) {
+
+    async addLog(event: LogEvent) {
         let uuid = randomUUID();
         let eventKey = `log_${new Date().toISOString()}_${this.data.hostname}_${event.event}_${uuid}`;
-        databaseEventEmitter.emit("logs", event);
-        this.logs.put(eventKey, event);
+        let e: targetLogEvent = { ...event, targetId: this.id, id: uuid.toString() };
+        databaseEventEmitter.emit("logs", e);
+        this.logs.put(eventKey, e);
     }
     async getLogs() {
         let logs = [];

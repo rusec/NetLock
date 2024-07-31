@@ -6,7 +6,15 @@ type fileEventType = "fileAccessed" | "fileCreated" | "fileDeleted" | "filePermi
 
 type processEventType = "processCreated" | "processEnded";
 
-type systemEventType = "regEdit" | "kernel" | "config" | "interfaceUp" | "interfaceDown" | "interfaceIpChange";
+type systemEventType =
+    | "regEdit"
+    | "kernel"
+    | "config"
+    | "interfaceCreated"
+    | "interfaceDeleted"
+    | "interfaceUp"
+    | "interfaceDown"
+    | "interfaceIpChange";
 
 type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted" | "userGroupChange";
 
@@ -66,6 +74,9 @@ export const LogStreamProvider = ({ setAlert, children }: Props) => {
         "config",
         "interfaceUp",
         "interfaceDown",
+        "interfaceCreated",
+        "interfaceDeleted",
+
         "interfaceIpChange",
         "userLoggedIn",
         "userLoggedOut",

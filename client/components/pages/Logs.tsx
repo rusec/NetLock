@@ -255,19 +255,19 @@ function Logs({}: Props) {
                     </div>
                 </div>
                 <div className="p-4">
-                    <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 ">
-                        <div className="stats shadow flex-1">
+                    <div className="stats-container flex flex-wrap gap-4 justify-center p-4 ">
+                        <div className="stats shadow">
                             <div className="stat">
                                 <div className="stat-title">Logs</div>
                                 <div className="stat-value">{logs.length}</div>
                                 <div className="stat-desc">amount of Logs</div>
                             </div>
                         </div>
-                        <div className="stats shadow flex-1">
+                        <div className="stats shadow">
                             <div className="stat">
                                 <div className="stat-title">Urgent</div>
                                 <div className="stat-value">{info.amountOfUrgent}</div>
-                                <div className="stat-desc">amount of users</div>
+                                <div className="stat-desc">amount of urgent logs</div>
                             </div>
                         </div>
                     </div>

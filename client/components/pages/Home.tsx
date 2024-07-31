@@ -11,6 +11,7 @@ type Props = {
 interface HomeInfo {
     targets: number;
     users: number;
+    apps: number;
     ips: { value: string; state: "up" | "down" }[];
 
     lastUpdated: target | false;
@@ -24,6 +25,8 @@ function Home({}: Props) {
         let lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
         let numberOfTargets = targets.length;
         let numberOfUsers = targets.reduce((p, v) => p + v.users.length, 0);
+        let numberOfApps = targets.reduce((p, v) => p + v.apps.length, 0);
+
         let ips = targets.flatMap((v) =>
             v.interfaces.map((i) => {
                 return { value: i.ip + " " + i.mac, state: i.state };
@@ -32,6 +35,7 @@ function Home({}: Props) {
         let result: HomeInfo = {
             targets: numberOfTargets,
             users: numberOfUsers,
+            apps: numberOfApps,
             ips: ips,
             lastUpdated: lastUpdatedTarget,
         };
@@ -56,6 +60,13 @@ function Home({}: Props) {
                                 <div className="stat-title">Users</div>
                                 <div className="stat-value">{info.users}</div>
                                 <div className="stat-desc">amount of users</div>
+                            </div>
+                        </div>
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">Apps</div>
+                                <div className="stat-value">{info.apps}</div>
+                                <div className="stat-desc">amount of apps</div>
                             </div>
                         </div>
                     </div>

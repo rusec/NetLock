@@ -15,7 +15,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File created successfully.",
         id: "log1",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "processCreated",
@@ -25,7 +25,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "Process started.",
         id: "log2",
         targetId,
-        argent: true,
+        urgent: true,
     },
     {
         event: "userLoggedIn",
@@ -35,7 +35,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "User logged in.",
         id: "log3",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "fileAccessed",
@@ -45,7 +45,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File accessed.",
         id: "log4",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "config",
@@ -55,7 +55,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "System configuration updated.",
         id: "log5",
         targetId,
-        argent: true,
+        urgent: true,
     },
     {
         event: "fileCreated",
@@ -65,7 +65,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File created successfully.",
         id: "log1",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "processCreated",
@@ -75,7 +75,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "Process started.",
         id: "log2",
         targetId,
-        argent: true,
+        urgent: true,
     },
     {
         event: "userLoggedIn",
@@ -85,7 +85,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "User logged in.",
         id: "log3",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "fileAccessed",
@@ -95,7 +95,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File accessed.",
         id: "log4",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "config",
@@ -105,7 +105,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "System configuration updated.",
         id: "log5",
         targetId,
-        argent: true,
+        urgent: true,
     },
     {
         event: "fileCreated",
@@ -115,7 +115,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File created successfully.",
         id: "log1",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "processCreated",
@@ -125,7 +125,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "Process started.",
         id: "log2",
         targetId,
-        argent: true,
+        urgent: true,
     },
     {
         event: "userLoggedIn",
@@ -135,7 +135,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "User logged in.",
         id: "log3",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "fileAccessed",
@@ -145,7 +145,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "File accessed.",
         id: "log4",
         targetId,
-        argent: false,
+        urgent: false,
     },
     {
         event: "config",
@@ -155,7 +155,7 @@ const fakeLogs: targetLogEvent[] = [
         message: "System configuration updated.",
         id: "log5",
         targetId,
-        argent: true,
+        urgent: true,
     },
 ];
 
@@ -181,12 +181,18 @@ function Logs({}: Props) {
         return filteredLogs;
     };
 
+    const parseStats = () => {
+        const amountOfUrgent = logs.reduce((prev, v) => (v.urgent ? prev + 1 : prev), 0);
+        return { amountOfUrgent: amountOfUrgent };
+    };
+    const info = parseStats();
+
     return (
         <div className="pr-7 px-7 pb-7">
             <div className="p-2 bg-base-300 flex">
-                <div className="p-2">
+                <div className="p-2 w-1/2">
                     <div className="flex">
-                        <div className="menu-title">Logs</div>
+                        <div className="card-title">Logs</div>
                         <div className="ml-auto">
                             <div className="dropdown dropdown-end">
                                 <div tabIndex={0} role="button" className="btn m-1">
@@ -234,7 +240,6 @@ function Logs({}: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {/* row 1 */}
                                 {processLogs().map((log, index) => (
                                     <tr>
                                         <th>{index}</th>
@@ -242,29 +247,29 @@ function Logs({}: Props) {
                                         <td>{log.event.toUpperCase()}</td>
                                         <td>{getTargetNameByID(log.targetId)}</td>
                                         <td>{log.message}</td>
-                                        <td>{log.argent ? "Yes" : "No"}</td>
+                                        <td>{log.urgent ? "Yes" : "No"}</td>
                                     </tr>
                                 ))}
-                                {/* <tr>
-                                    <th>1</th>
-                                    <td>Cy Ganderton</td>
-                                    <td>Quality Control Specialist</td>
-                                    <td>Blue</td>
-                                </tr>
-                                <tr>
-                                    <th>2</th>
-                                    <td>Hart Hagerty</td>
-                                    <td>Desktop Support Technician</td>
-                                    <td>Purple</td>
-                                </tr>
-                                <tr>
-                                    <th>3</th>
-                                    <td>Brice Swyre</td>
-                                    <td>Tax Accountant</td>
-                                    <td>Red</td>
-                                </tr> */}
                             </tbody>
                         </table>
+                    </div>
+                </div>
+                <div className="p-4">
+                    <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 ">
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">Logs</div>
+                                <div className="stat-value">{logs.length}</div>
+                                <div className="stat-desc">amount of Logs</div>
+                            </div>
+                        </div>
+                        <div className="stats shadow flex-1">
+                            <div className="stat">
+                                <div className="stat-title">Urgent</div>
+                                <div className="stat-value">{info.amountOfUrgent}</div>
+                                <div className="stat-desc">amount of users</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

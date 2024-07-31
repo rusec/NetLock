@@ -53,8 +53,8 @@ export interface targetLogEvent extends targetEvent {
     message: string;
     id: string;
     targetId: string;
-    // logs the event as argent and needs to be looked at
-    argent: boolean;
+    // logs the event as urgent and needs to be looked at
+    urgent: boolean;
 }
 
 const fileEventType = Joi.string().valid("fileAccessed", "fileCreated", "fileDeleted", "filePermission");

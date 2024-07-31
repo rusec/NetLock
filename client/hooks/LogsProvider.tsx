@@ -22,7 +22,7 @@ export interface targetLogEvent extends targetEvent {
     message: string;
     id: string;
     targetId: string;
-    argent: boolean;
+    urgent: boolean;
 }
 interface LogContext {
     logs: targetLogEvent[];
@@ -79,7 +79,7 @@ export const LogStreamProvider = ({ setAlert, children }: Props) => {
         source.onmessage = function (event) {
             const log: targetLogEvent = JSON.parse(event.data);
             //might want to add host name to logs
-            if (log.argent) setAlert({ type: "warning", message: log.message, time: 3000 });
+            if (log.urgent) setAlert({ type: "warning", message: log.message, time: 3000 });
             setLogs((prevLogs) => {
                 let newState = [...prevLogs];
 

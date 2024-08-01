@@ -1,4 +1,4 @@
-import React, { ChangeEvent, EventHandler, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { useAuth } from "../hooks/AuthProvider";
 
 const Register = () => {
@@ -26,25 +26,27 @@ const Register = () => {
     };
 
     return (
-        <form onSubmit={handleSubmitEvent}>
-            <div className="title">Register</div>
+        <form onSubmit={handleSubmitEvent} className="max-w-md mx-auto p-4">
+            <div className="text-2xl font-semibold mb-4">Register</div>
 
-            <div className="form_control">
-                {/* <label htmlFor="password">Password:</label> */}
+            <div className="mb-4">
+                <label htmlFor="password" className="sr-only">
+                    Password:
+                </label>
                 <input
                     type="password"
                     id="password"
                     placeholder="Password"
                     name="password"
-                    aria-describedby="user-password"
-                    aria-invalid="false"
                     onChange={handleInput}
+                    className="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300"
                 />
-                <div id="user-password" className="sr-only">
-                    your password should be more than 6 character
-                </div>
+                <div className="text-sm text-gray-500 mt-1">Your password should be more than 6 characters.</div>
             </div>
-            <button className="btn-submit">Submit</button>
+
+            <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300">
+                Submit
+            </button>
         </form>
     );
 };

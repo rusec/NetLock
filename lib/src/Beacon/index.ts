@@ -1,6 +1,3 @@
-import axios from "axios";
-import { exec, execSync } from "child_process";
-import os from "os";
 import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";

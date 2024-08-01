@@ -3,36 +3,6 @@ import { useAuth } from "./AuthProvider";
 import { alert } from "../components/models/Alert";
 import { EventTypes, LogEvent, FileEvent, ProcessEvent, RegEditEvent, KernelEvent, NetworkEvent, UserEvent } from "netlocklib/dist/Events";
 
-// type fileEventType = "fileAccessed" | "fileCreated" | "fileDeleted" | "filePermission";
-
-// type processEventType = "processCreated" | "processEnded";
-
-// type systemEventType =
-//     | "regEdit"
-//     | "kernel"
-//     | "config"
-//     | "interfaceCreated"
-//     | "interfaceDeleted"
-//     | "interfaceUp"
-//     | "interfaceDown"
-//     | "interfaceIpChange";
-
-// type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted" | "userGroupChange";
-
-// export type event = processEventType | fileEventType | systemEventType | userEventType;
-
-// export interface targetEvent {
-//     event: event;
-//     user: string | undefined;
-//     timestamp: number;
-//     description: string;
-// }
-// export interface targetLogEvent extends targetEvent {
-//     message: string;
-//     id: string;
-//     targetId: string;
-//     urgent: boolean;
-// }
 interface LogContext {
     logs: LogEvent.Log[];
     lastUpdatedID: LogEvent.Log | undefined;

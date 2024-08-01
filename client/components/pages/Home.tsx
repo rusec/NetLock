@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { target } from "netlocklib/dist/Target";
-import { useTargetStream } from "../../hooks/TargetsProvicer";
+import { useTargetStream } from "../../hooks/TargetsProvider";
 import Target from "../Target/Target";
 
 type Props = {

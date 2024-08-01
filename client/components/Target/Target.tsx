@@ -1,7 +1,7 @@
 import React from "react";
 import { target } from "netlocklib/dist/Target";
 import { convertDateToHumanReadable } from "../../utils/time";
-import { useTargetStream } from "../../hooks/TargetsProvicer";
+import { useTargetStream } from "../../hooks/TargetsProvider";
 
 type Props = { target: target; fillContainer: boolean };
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useTargetStream } from "../../hooks/TargetsProvicer";
+import { useTargetStream } from "../../hooks/TargetsProvider";
 import { LogEvent } from "netlocklib/dist/Events";
 import { useLogStream } from "../../hooks/LogsProvider";
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/AuthProvider";
 import Home from "./pages/Home";
-import { TargetStreamProvider } from "../hooks/TargetsProvicer";
+import { TargetStreamProvider } from "../hooks/TargetsProvider";
 import Targets from "./pages/Targets";
 import Nav from "./Nav/Nav";
 import Alert, { alert } from "./models/Alert";

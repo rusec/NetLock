@@ -1,5 +1,5 @@
 import React from "react";
-import { useTargetStream } from "../../hooks/TargetsProvicer";
+import { useTargetStream } from "../../hooks/TargetsProvider";
 import { convertDateToHumanReadable } from "../../utils/time";
 import Target from "../Target/Target";
 

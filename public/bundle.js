@@ -46977,7 +46977,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const Home_1 = __importDefault(__webpack_require__(/*! ./pages/Home */ "./client/components/pages/Home.tsx"));
-const TargetsProvicer_1 = __webpack_require__(/*! ../hooks/TargetsProvicer */ "./client/hooks/TargetsProvicer.tsx");
+const TargetsProvider_1 = __webpack_require__(/*! ../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
 const Targets_1 = __importDefault(__webpack_require__(/*! ./pages/Targets */ "./client/components/pages/Targets.tsx"));
 const Nav_1 = __importDefault(__webpack_require__(/*! ./Nav/Nav */ "./client/components/Nav/Nav.tsx"));
 const Alert_1 = __importDefault(__webpack_require__(/*! ./models/Alert */ "./client/components/models/Alert.tsx"));
@@ -46993,7 +46993,7 @@ function Dashboard() {
                 setPage(value);
             } }),
         react_1.default.createElement("div", null,
-            react_1.default.createElement(TargetsProvicer_1.TargetStreamProvider, null,
+            react_1.default.createElement(TargetsProvider_1.TargetStreamProvider, null,
                 react_1.default.createElement(LogsProvider_1.LogStreamProvider, { setAlert: setAlertMessage },
                     Page === "Home" && react_1.default.createElement(Home_1.default, null),
                     Page === "Targets" && react_1.default.createElement(Targets_1.default, null),
@@ -47208,9 +47208,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = Target;
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const time_1 = __webpack_require__(/*! ../../utils/time */ "./client/utils/time.ts");
-const TargetsProvicer_1 = __webpack_require__(/*! ../../hooks/TargetsProvicer */ "./client/hooks/TargetsProvicer.tsx");
+const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
 function Target({ target, fillContainer }) {
-    const { deleteTargetAction } = (0, TargetsProvicer_1.useTargetStream)();
+    const { deleteTargetAction } = (0, TargetsProvider_1.useTargetStream)();
     return (react_1.default.createElement("div", { className: "bg-neutral p-4 rounded shadow-md w-full relative " + (fillContainer ? "" : "md:w-1/2 lg:w-1/3 xl:w-1/4") },
         react_1.default.createElement("button", { className: "btn btn-xs btn-warning right-3 bottom-3 absolute", onClick: () => deleteTargetAction(target.id) }, "Delete"),
         react_1.default.createElement("h2", { className: "text-lg font-semibold mb-2" }, target.hostname),
@@ -47301,10 +47301,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvicer_1 = __webpack_require__(/*! ../../hooks/TargetsProvicer */ "./client/hooks/TargetsProvicer.tsx");
+const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
 const Target_1 = __importDefault(__webpack_require__(/*! ../Target/Target */ "./client/components/Target/Target.tsx"));
 function Home({}) {
-    const { targets, lastUpdatedID } = (0, TargetsProvicer_1.useTargetStream)();
+    const { targets, lastUpdatedID } = (0, TargetsProvider_1.useTargetStream)();
     const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
     function parseHomeInfo() {
         let lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
@@ -47394,7 +47394,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvicer_1 = __webpack_require__(/*! ../../hooks/TargetsProvicer */ "./client/hooks/TargetsProvicer.tsx");
+const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
 const LogsProvider_1 = __webpack_require__(/*! ../../hooks/LogsProvider */ "./client/hooks/LogsProvider.tsx");
 const targetId = "ba066a29bd5dc07c63a9ac630a72462ec67c492a3805eed727e0e443e214caab";
 // const fakeLogs: LogEvent.Log[] = [
@@ -47551,7 +47551,7 @@ const targetId = "ba066a29bd5dc07c63a9ac630a72462ec67c492a3805eed727e0e443e214ca
 // ];
 function Logs({}) {
     const { logs, lastUpdatedID, allEventTypes } = (0, LogsProvider_1.useLogStream)();
-    const { getTargetsByIdAndName, getTargetNameByID } = (0, TargetsProvicer_1.useTargetStream)();
+    const { getTargetsByIdAndName, getTargetNameByID } = (0, TargetsProvider_1.useTargetStream)();
     const [TargetSelected, setTargetSelected] = (0, react_1.useState)("");
     const [EventSelected, setEventSelected] = (0, react_1.useState)("");
     const processLogs = () => {
@@ -47643,10 +47643,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvicer_1 = __webpack_require__(/*! ../../hooks/TargetsProvicer */ "./client/hooks/TargetsProvicer.tsx");
+const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
 const Target_1 = __importDefault(__webpack_require__(/*! ../Target/Target */ "./client/components/Target/Target.tsx"));
 function Targets({}) {
-    const { targets, lastUpdatedID, deleteTargetAction } = (0, TargetsProvicer_1.useTargetStream)();
+    const { targets, lastUpdatedID, deleteTargetAction } = (0, TargetsProvider_1.useTargetStream)();
     const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
     return (react_1.default.createElement("div", { className: "p-7 flex flex-wrap gap-3 justify-center" }, targets && targets.map((target) => react_1.default.createElement(Target_1.default, { fillContainer: false, target: target }))));
 }
@@ -47898,9 +47898,9 @@ exports.LogStreamProvider = LogStreamProvider;
 
 /***/ }),
 
-/***/ "./client/hooks/TargetsProvicer.tsx":
+/***/ "./client/hooks/TargetsProvider.tsx":
 /*!******************************************!*\
-  !*** ./client/hooks/TargetsProvicer.tsx ***!
+  !*** ./client/hooks/TargetsProvider.tsx ***!
   \******************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 

@@ -200,6 +200,14 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
             await target.addLog(log);
             break;
         }
+        case "interfaceDeleted": {
+            let data = body as targetNetworkEvent;
+            let message = `Interface ${data.mac} ${data.ip} Created`;
+            let log: LogEvent = { ...data, message: message, urgent: false };
+            result = await target.removeInterface(data.mac);
+            await target.addLog(log);
+            break;
+        }
         case "kernel": {
             let data = body as targetSystemEvent;
             let message = `Kernel ${data.systemfile} ${data.description}`;
@@ -244,7 +252,7 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
             let data = body as targetUserEvent;
             let message = `User ${data.user} deleted`;
             let log: LogEvent = { ...data, message: message, urgent: false };
-            // Need target delete user
+            result = await target.removeUser(data.user);
             await target.addLog(log);
             break;
         }
@@ -268,7 +276,6 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
             let data = body as targetUserEvent;
             let message = `User ${data.user} Logged in`;
             let log: LogEvent = { ...data, message: message, urgent: false };
-            // Need target delete user
             result = await target.updateUser(data.user, { loggedIn: false });
             await target.addLog(log);
             break;

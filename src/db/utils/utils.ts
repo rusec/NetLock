@@ -6,4 +6,11 @@ function removeUUIDFromString(str: string) {
     return result;
 }
 
-export { removeUUIDFromString };
+function removeFromArray(array: any[], key: string, value: string) {
+    let index = array.findIndex((i) => i[key] == value);
+    if (index == -1) return false;
+    array.splice(index, 1);
+    return true;
+}
+
+export { removeUUIDFromString, removeFromArray };

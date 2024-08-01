@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
 import { event, LogEvent, targetEvent, targetLogEvent } from "../routes/types/Events";
-import { removeUUIDFromString } from "./utils/utils";
+import { removeFromArray, removeUUIDFromString } from "./utils/utils";
 
 type dbEventTypes = {
     logs: [event: targetLogEvent];
@@ -87,6 +87,14 @@ class TargetData {
         this.data.interfaces[index].ip = ip;
         await this._updateData();
     }
+    async removeInterface(mac: string) {
+        let result = await this._getCurrData();
+        if (!result) return;
+
+        removeFromArray(this.data.interfaces, "mac", mac);
+        await this._updateData();
+        return true;
+    }
     async addUser(
         username: string,
         options: {
@@ -104,6 +112,14 @@ class TargetData {
             name: username,
         });
         await this._updateData();
+        return true;
+    }
+    async removeUser(username: string) {
+        let result = await this._getCurrData();
+        if (!result) return;
+        removeFromArray(this.data.users, "name", username);
+        await this._updateData();
+        return true;
     }
     async updateUser(
         username: string,
@@ -122,7 +138,25 @@ class TargetData {
         if (options.lastLogin) this.data.users[index].lastUpdate = new Date(options.lastLogin).getTime();
         this.data.users[index].lastUpdate = new Date().getTime();
         await this._updateData();
+        return true;
     }
+    async addApp(name: string, running: boolean, version: string) {
+        let result = await this._getCurrData();
+        if (!result) return;
+
+        let index = this.data.apps.findIndex((i) => i.name == name);
+        if (index != -1) return false;
+
+        this.data.apps.push({
+            name: name,
+            running: running,
+            version: version,
+        });
+
+        await this._updateData();
+        return true;
+    }
+
     async updateApp(app: string, running: boolean) {
         let result = await this._getCurrData();
         if (!result) return;
@@ -133,14 +167,24 @@ class TargetData {
         this.data.apps[index].running = running;
 
         await this._updateData();
+        return true;
     }
+    async removeApp(app: string) {
+        let result = await this._getCurrData();
+        if (!result) return;
 
+        removeFromArray(this.data.apps, "name", app);
+
+        await this._updateData();
+        return true;
+    }
     async addLog(event: LogEvent) {
         let uuid = randomUUID();
         let eventKey = `log_${new Date().toISOString()}_${this.data.hostname}_${event.event}_${uuid}`;
         let e: targetLogEvent = { ...event, targetId: this.id, id: uuid.toString() };
         databaseEventEmitter.emit("logs", e);
         this.logs.put(eventKey, e);
+        return true;
     }
     async getLogs() {
         let logs = [];
@@ -154,7 +198,8 @@ class TargetData {
     }
     async delTarget() {
         await this.logs.clear();
-        await this.db.del(this.id);
+        await this.db.del(this.id).catch(() => undefined);
+        return true;
     }
 }
 class DataBase {

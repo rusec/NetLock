@@ -10,6 +10,7 @@ import { BeaconRegisterRouter } from "./routes/register/register";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import crypto from "crypto";
+import { BeaconEventRouter } from "./routes/target/target";
 const app = express();
 app.use((req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(32).toString("hex");
@@ -72,6 +73,7 @@ app.get("/", (req: Request, res: Response, next: NextFunction): void => {
     }
 });
 app.use("/api/beacon", BeaconRegisterRouter);
+app.use("/api/beacon", BeaconEventRouter);
 app.use("/api/user", UserRouter);
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/index.html"));

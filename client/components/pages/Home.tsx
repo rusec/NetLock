@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { target } from "../Dashboard";
+import { target } from "netlocklib/dist/Target";
 import { useTargetStream } from "../../hooks/TargetsProvicer";
 import Target from "../Target/Target";
 

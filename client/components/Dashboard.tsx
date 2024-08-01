@@ -8,33 +8,6 @@ import Alert, { alert } from "./models/Alert";
 import { LogStreamProvider } from "../hooks/LogsProvider";
 import Logs from "./pages/Logs";
 
-interface targetUser {
-    name: string;
-    lastLogin: number;
-    lastUpdate: number;
-    loggedIn: boolean;
-}
-interface targetApp {
-    name: string;
-    running: boolean;
-    version: string;
-}
-interface targetInterface {
-    ip: string;
-    mac: string;
-    state: "down" | "up";
-}
-export interface target {
-    id: string;
-    hostname: string;
-    os: string;
-    active: boolean;
-    interfaces: Array<targetInterface>;
-    users: Array<targetUser>;
-    apps: Array<targetApp>;
-    lastPing: number;
-    dateAdded: number;
-}
 export type Page = "Home" | "Targets" | "Logs";
 
 function Dashboard() {

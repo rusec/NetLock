@@ -1,42 +1,43 @@
 import React, { createContext, useContext, useState, useEffect, Dispatch, SetStateAction } from "react";
 import { useAuth } from "./AuthProvider";
 import { alert } from "../components/models/Alert";
+import { EventTypes, LogEvent, FileEvent, ProcessEvent, RegEditEvent, KernelEvent, NetworkEvent, UserEvent } from "netlocklib/dist/Events";
 
-type fileEventType = "fileAccessed" | "fileCreated" | "fileDeleted" | "filePermission";
+// type fileEventType = "fileAccessed" | "fileCreated" | "fileDeleted" | "filePermission";
 
-type processEventType = "processCreated" | "processEnded";
+// type processEventType = "processCreated" | "processEnded";
 
-type systemEventType =
-    | "regEdit"
-    | "kernel"
-    | "config"
-    | "interfaceCreated"
-    | "interfaceDeleted"
-    | "interfaceUp"
-    | "interfaceDown"
-    | "interfaceIpChange";
+// type systemEventType =
+//     | "regEdit"
+//     | "kernel"
+//     | "config"
+//     | "interfaceCreated"
+//     | "interfaceDeleted"
+//     | "interfaceUp"
+//     | "interfaceDown"
+//     | "interfaceIpChange";
 
-type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted" | "userGroupChange";
+// type userEventType = "userLoggedIn" | "userLoggedOut" | "userCreated" | "userDeleted" | "userGroupChange";
 
-export type event = processEventType | fileEventType | systemEventType | userEventType;
+// export type event = processEventType | fileEventType | systemEventType | userEventType;
 
-export interface targetEvent {
-    event: event;
-    user: string | undefined;
-    timestamp: number;
-    description: string;
-}
-export interface targetLogEvent extends targetEvent {
-    message: string;
-    id: string;
-    targetId: string;
-    urgent: boolean;
-}
+// export interface targetEvent {
+//     event: event;
+//     user: string | undefined;
+//     timestamp: number;
+//     description: string;
+// }
+// export interface targetLogEvent extends targetEvent {
+//     message: string;
+//     id: string;
+//     targetId: string;
+//     urgent: boolean;
+// }
 interface LogContext {
-    logs: targetLogEvent[];
-    lastUpdatedID: targetLogEvent | undefined;
-    allEventTypes: event[];
-    getLogBy: (options: { id?: string | string[]; event?: event | event[] }) => targetLogEvent[];
+    logs: LogEvent.Log[];
+    lastUpdatedID: LogEvent.Log | undefined;
+    allEventTypes: EventTypes[];
+    getLogBy: (options: { id?: string | string[]; event?: EventTypes | EventTypes[] }) => LogEvent.Log[];
 }
 
 // Create a Context object
@@ -44,7 +45,7 @@ const LogStreamContext = createContext<LogContext>({
     logs: [],
     lastUpdatedID: undefined,
     allEventTypes: [],
-    getLogBy: (options: { id?: string | string[]; event?: event | event[] }) => [],
+    getLogBy: (options: { id?: string | string[]; event?: EventTypes | EventTypes[] }) => [],
 });
 
 // Create a custom hook that allows easy access to the Context
@@ -59,36 +60,35 @@ type Props = {
 // Create a Provider component
 export const LogStreamProvider = ({ setAlert, children }: Props) => {
     const { token } = useAuth(); // get the token from useAuth
-    const [logs, setLogs] = useState<targetLogEvent[]>([]);
-    const [lastUpdatedID, setLastUpdatedID] = useState<targetLogEvent>();
+    const [logs, setLogs] = useState<LogEvent.Log[]>([]);
+    const [lastUpdatedID, setLastUpdatedID] = useState<LogEvent.Log>();
     // Create an array of all event types
-    const allEventTypes: event[] = [
-        "fileAccessed",
-        "fileCreated",
-        "fileDeleted",
-        "filePermission",
-        "processCreated",
-        "processEnded",
-        "regEdit",
-        "kernel",
-        "config",
-        "interfaceUp",
-        "interfaceDown",
-        "interfaceCreated",
-        "interfaceDeleted",
-
-        "interfaceIpChange",
-        "userLoggedIn",
-        "userLoggedOut",
-        "userCreated",
-        "userDeleted",
-        "userGroupChange",
+    const allEventTypes: EventTypes[] = [
+        FileEvent.Types.FileAccessed,
+        FileEvent.Types.FileCreated,
+        FileEvent.Types.FileDeleted,
+        FileEvent.Types.FilePermission,
+        ProcessEvent.Types.ProcessCreated,
+        ProcessEvent.Types.ProcessEnded,
+        RegEditEvent.Types.RegEdit,
+        KernelEvent.Types.Config,
+        KernelEvent.Types.Kernel,
+        NetworkEvent.Types.InterfaceCreated,
+        NetworkEvent.Types.InterfaceDeleted,
+        NetworkEvent.Types.InterfaceDown,
+        NetworkEvent.Types.InterfaceIpChange,
+        NetworkEvent.Types.InterfaceUp,
+        UserEvent.Types.UserCreated,
+        UserEvent.Types.UserDeleted,
+        UserEvent.Types.UserGroupChange,
+        UserEvent.Types.UserLoggedIn,
+        UserEvent.Types.UserLoggedOut,
     ];
     useEffect(() => {
         const source = new EventSource("/api/user/logs/stream" + `?token=${token}`);
 
         source.onmessage = function (event) {
-            const log: targetLogEvent = JSON.parse(event.data);
+            const log: LogEvent.Log = JSON.parse(event.data);
             //might want to add host name to logs
             if (log.urgent) setAlert({ type: "warning", message: log.message, time: 3000 });
             setLogs((prevLogs) => {
@@ -107,7 +107,7 @@ export const LogStreamProvider = ({ setAlert, children }: Props) => {
         };
     }, [token]);
 
-    const getLogBy = (options: { id?: string | string[]; event?: event | event[] }): targetLogEvent[] => {
+    const getLogBy = (options: { id?: string | string[]; event?: EventTypes | EventTypes[] }): LogEvent.Log[] => {
         const { id, event } = options;
         let filteredLogs = logs;
 

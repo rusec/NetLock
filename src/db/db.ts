@@ -5,11 +5,11 @@ import { DbUser, UserDocRequest } from "./types/db";
 import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
-import { event, LogEvent, targetEvent, targetLogEvent } from "../routes/types/Events";
 import { removeFromArray, removeUUIDFromString } from "./utils/utils";
+import { LogEvent } from "netlocklib/dist/Events";
 
 type dbEventTypes = {
-    logs: [event: targetLogEvent];
+    logs: [event: LogEvent.Log];
     target: [event: target];
 };
 
@@ -30,7 +30,7 @@ class TargetData {
         AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>,
         string | Buffer | Uint8Array,
         string,
-        targetLogEvent
+        LogEvent.Log
     >;
 
     constructor(data: target, id: string, db: AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>) {
@@ -178,10 +178,10 @@ class TargetData {
         await this._updateData();
         return true;
     }
-    async addLog(event: LogEvent) {
+    async addLog(event: LogEvent.BeaconEvent) {
         let uuid = randomUUID();
         let eventKey = `log_${new Date().toISOString()}_${this.data.hostname}_${event.event}_${uuid}`;
-        let e: targetLogEvent = { ...event, targetId: this.id, id: uuid.toString() };
+        let e: LogEvent.Log = { ...event, targetId: this.id, id: uuid.toString(), timestamp: new Date().getTime() };
         databaseEventEmitter.emit("logs", e);
         this.logs.put(eventKey, e);
         return true;
@@ -279,7 +279,7 @@ class DataBase {
             mainLogs.push(logs);
         }
         let faltLogs = mainLogs.flat();
-        return faltLogs.sort((a: targetLogEvent, b: targetLogEvent) => a.timestamp - b.timestamp);
+        return faltLogs.sort((a: LogEvent.Log, b: LogEvent.Log) => a.timestamp - b.timestamp);
     }
     async getAllTargets() {
         let data: target[] = [];

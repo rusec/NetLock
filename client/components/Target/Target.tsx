@@ -1,5 +1,5 @@
 import React from "react";
-import { target } from "../Dashboard";
+import { target } from "netlocklib/dist/Target";
 import { convertDateToHumanReadable } from "../../utils/time";
 import { useTargetStream } from "../../hooks/TargetsProvicer";
 

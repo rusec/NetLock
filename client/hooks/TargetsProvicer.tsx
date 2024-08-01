@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
-import { target } from "../components/Dashboard";
+import { target } from "netlocklib/dist/Target";
 
 interface TargetContext {
     targets: target[];

@@ -191,7 +191,7 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
         }
         case "interfaceDeleted": {
             let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} ${data.ip} Created`;
+            let message = `Interface ${data.mac} ${data.ip} Deleted`;
             let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
             result = await target.removeInterface(data.mac);
             await target.addLog(log);

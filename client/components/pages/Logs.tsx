@@ -34,9 +34,9 @@ function Logs({}: Props) {
         return { amountOfUrgent: amountOfUrgent };
     };
     const info = parseStats();
-    const [selectedLogIndex, setSelectedLogIndex] = useState(null);
+    const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
 
-    const handleRowClick = (index) => {
+    const handleRowClick = (index: number | null) => {
         setSelectedLogIndex(selectedLogIndex === index ? null : index);
     };
     return (

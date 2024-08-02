@@ -4,7 +4,7 @@ import crypto from "crypto";
 import { log } from "../../utils/output/debug";
 import { authenticate } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
-import db from "../../db/db";
+import db, { DbTargetError } from "../../db/db";
 import { Event, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent, eventSchema } from "netlocklib/dist/Events";
 let router = Router({
     caseSensitive: true,
@@ -106,7 +106,7 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
     let target = await db.getTarget(req.client.id);
 
     if (!target) return res.status(400).json({ status: "Target Not Found" });
-    let result: boolean | undefined = false;
+    let result: boolean | DbTargetError = false;
     switch (body.event) {
         case "fileAccessed": {
             let data = body as FileEvent.event;
@@ -270,9 +270,10 @@ router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, 
             break;
         }
         default:
+            return res.status(400).json({ status: `Unknown Event ${body.event}` });
             break;
     }
-    if (!result) return res.status(400).json({ status: "failed" });
+    if (result instanceof DbTargetError) return res.status(400).json(result.toJson());
     return res.status(200).json({ status: "success" });
 });
 

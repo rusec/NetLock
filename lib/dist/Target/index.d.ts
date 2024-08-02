@@ -1,3 +1,4 @@
+import Joi from "joi";
 export interface targetUser {
     name: string;
     lastLogin: number;
@@ -22,8 +23,7 @@ export interface targetRequest {
     users: Array<targetUser>;
     apps: Array<targetApp>;
 }
-export interface target {
-    id: string;
+export interface initTarget {
     hostname: string;
     os: string;
     active: boolean;
@@ -33,4 +33,12 @@ export interface target {
     lastPing: number;
     dateAdded: number;
 }
+export interface target extends initTarget {
+    id: string;
+}
+export declare const targetUserSchema: Joi.ObjectSchema<any>;
+export declare const targetAppSchema: Joi.ObjectSchema<any>;
+export declare const targetInterfaceSchema: Joi.ObjectSchema<any>;
+export declare const targetRequestSchema: Joi.ObjectSchema<any>;
+export declare const targetSchema: Joi.ObjectSchema<any>;
 //# sourceMappingURL=index.d.ts.map

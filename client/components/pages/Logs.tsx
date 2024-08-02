@@ -34,12 +34,16 @@ function Logs({}: Props) {
         return { amountOfUrgent: amountOfUrgent };
     };
     const info = parseStats();
+    const [selectedLogIndex, setSelectedLogIndex] = useState(null);
 
+    const handleRowClick = (index) => {
+        setSelectedLogIndex(selectedLogIndex === index ? null : index);
+    };
     return (
         <div className="pr-7 px-7 pb-7">
             <div className="p-2 bg-base-300 flex">
                 <div className="p-2 w-1/2">
-                    <div className="flex">
+                    <div className="flex relative">
                         <div className="card-title">Logs</div>
                         <div className="ml-auto">
                             <div
@@ -83,34 +87,47 @@ function Logs({}: Props) {
                             </div>
                         </div>
                     </div>
-                    <div className="overflow-x-auto">
-                        <table className="table">
-                            {/* head */}
+                    <div className="overflow-x-auto overflow-y-auto max-h-lvh">
+                        <table className="table w-full">
                             <thead>
-                                <tr>
+                                <tr className="bg-primary text-white">
                                     <th></th>
                                     <th>Date</th>
                                     <th>Event</th>
                                     <th>Target</th>
                                     <th>Message</th>
-                                    <th>Argent</th>
+                                    <th>Urgent</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {DisplayedLogs.map((log, index) => (
-                                    <tr>
-                                        <th>{index}</th>
-                                        <td>{convertDateToHumanReadable(log.timestamp)}</td>
-                                        <td>{log.event.toUpperCase()}</td>
-                                        <td>{getTargetNameByID(log.targetId)}</td>
-                                        <td>{log.message}</td>
-                                        <td>{log.urgent ? "Yes" : "No"}</td>
-                                    </tr>
+                                    <>
+                                        <tr
+                                            key={index}
+                                            className="hover:bg-neutral hover:text-white cursor-pointer"
+                                            onClick={() => handleRowClick(index)}
+                                        >
+                                            <th>{index + 1}</th>
+                                            <td>{convertDateToHumanReadable(log.timestamp)}</td>
+                                            <td>{log.event.toUpperCase()}</td>
+                                            <td>{getTargetNameByID(log.targetId)}</td>
+                                            <td>{log.message}</td>
+                                            <td>{log.urgent ? "Yes" : "No"}</td>
+                                        </tr>
+                                        {selectedLogIndex === index && (
+                                            <tr key={`${index}-details`} className="bg-gray-100">
+                                                <td colSpan={6}>
+                                                    <pre className="whitespace-pre-wrap p-4">{JSON.stringify(log, null, 2)}</pre>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
                                 ))}
                             </tbody>
                         </table>
                     </div>
                 </div>
+
                 <div className="p-4">
                     <div className="stats-container flex flex-wrap gap-4 justify-center p-4 ">
                         <div className="stats shadow">

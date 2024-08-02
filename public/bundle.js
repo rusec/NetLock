@@ -47510,7 +47510,7 @@ function Logs({}) {
                                 react_1.default.createElement("td", null, getTargetNameByID(log.targetId)),
                                 react_1.default.createElement("td", null, log.message),
                                 react_1.default.createElement("td", null, log.urgent ? "Yes" : "No")),
-                            selectedLogIndex === index && (react_1.default.createElement("tr", { key: `${index}-details`, className: "bg-gray-100" },
+                            selectedLogIndex === index && (react_1.default.createElement("tr", { key: `${index}-details`, className: "bg-base-100" },
                                 react_1.default.createElement("td", { colSpan: 6 },
                                     react_1.default.createElement("pre", { className: "whitespace-pre-wrap p-4" }, JSON.stringify(log, null, 2)))))))))))),
             react_1.default.createElement("div", { className: "p-4" },

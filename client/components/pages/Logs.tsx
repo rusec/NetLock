@@ -115,7 +115,7 @@ function Logs({}: Props) {
                                             <td>{log.urgent ? "Yes" : "No"}</td>
                                         </tr>
                                         {selectedLogIndex === index && (
-                                            <tr key={`${index}-details`} className="bg-gray-100">
+                                            <tr key={`${index}-details`} className="bg-base-100">
                                                 <td colSpan={6}>
                                                     <pre className="whitespace-pre-wrap p-4">{JSON.stringify(log, null, 2)}</pre>
                                                 </td>

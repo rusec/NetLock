@@ -273,7 +273,8 @@ class DataBase {
     }
     async getAllLogs() {
         let mainLogs = [];
-        for await (const value of this.targets.values()) {
+        for await (const [key, value] of this.targets.iterator()) {
+            if (key.includes("_logs")) continue;
             let target = new TargetData(value, value.id, this.targets);
             let logs = await target.getLogs();
             mainLogs.push(logs);
@@ -283,7 +284,9 @@ class DataBase {
     }
     async getAllTargets() {
         let data: target[] = [];
-        for await (const value of this.targets.values()) {
+        for await (const [key, value] of this.targets.iterator()) {
+            // Figure out a better way to store these because levelDb returns sublevel keys too
+            if (key.includes("_logs")) continue;
             data.push(value);
         }
         return data;

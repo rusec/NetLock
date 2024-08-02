@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/AuthProvider";
 import Home from "./pages/Home";
-import { TargetStreamProvider } from "../hooks/TargetsProvider";
+import { StreamProvider } from "../hooks/StreamProvider";
 import Targets from "./pages/Targets";
 import Nav from "./Nav/Nav";
 import Alert, { alert } from "./models/Alert";
-import { LogStreamProvider } from "../hooks/LogsProvider";
 import Logs from "./pages/Logs";
 
 export type Page = "Home" | "Targets" | "Logs";
@@ -24,13 +23,11 @@ function Dashboard() {
                 }}
             />
             <div>
-                <TargetStreamProvider>
-                    <LogStreamProvider setAlert={setAlertMessage}>
-                        {Page === "Home" && <Home />}
-                        {Page === "Targets" && <Targets />}
-                        {Page === "Logs" && <Logs />}
-                    </LogStreamProvider>
-                </TargetStreamProvider>
+                <StreamProvider setAlert={setAlertMessage}>
+                    {Page === "Home" && <Home />}
+                    {Page === "Targets" && <Targets />}
+                    {Page === "Logs" && <Logs />}
+                </StreamProvider>
             </div>
             <footer className="footer footer-center bg-base-300 text-base-content p-4">
                 <aside>

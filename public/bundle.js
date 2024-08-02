@@ -46977,11 +46977,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const Home_1 = __importDefault(__webpack_require__(/*! ./pages/Home */ "./client/components/pages/Home.tsx"));
-const TargetsProvider_1 = __webpack_require__(/*! ../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
+const StreamProvider_1 = __webpack_require__(/*! ../hooks/StreamProvider */ "./client/hooks/StreamProvider.tsx");
 const Targets_1 = __importDefault(__webpack_require__(/*! ./pages/Targets */ "./client/components/pages/Targets.tsx"));
 const Nav_1 = __importDefault(__webpack_require__(/*! ./Nav/Nav */ "./client/components/Nav/Nav.tsx"));
 const Alert_1 = __importDefault(__webpack_require__(/*! ./models/Alert */ "./client/components/models/Alert.tsx"));
-const LogsProvider_1 = __webpack_require__(/*! ../hooks/LogsProvider */ "./client/hooks/LogsProvider.tsx");
 const Logs_1 = __importDefault(__webpack_require__(/*! ./pages/Logs */ "./client/components/pages/Logs.tsx"));
 function Dashboard() {
     const [Page, setPage] = (0, react_1.useState)((localStorage.getItem("Page") || "Home"));
@@ -46993,11 +46992,10 @@ function Dashboard() {
                 setPage(value);
             } }),
         react_1.default.createElement("div", null,
-            react_1.default.createElement(TargetsProvider_1.TargetStreamProvider, null,
-                react_1.default.createElement(LogsProvider_1.LogStreamProvider, { setAlert: setAlertMessage },
-                    Page === "Home" && react_1.default.createElement(Home_1.default, null),
-                    Page === "Targets" && react_1.default.createElement(Targets_1.default, null),
-                    Page === "Logs" && react_1.default.createElement(Logs_1.default, null)))),
+            react_1.default.createElement(StreamProvider_1.StreamProvider, { setAlert: setAlertMessage },
+                Page === "Home" && react_1.default.createElement(Home_1.default, null),
+                Page === "Targets" && react_1.default.createElement(Targets_1.default, null),
+                Page === "Logs" && react_1.default.createElement(Logs_1.default, null))),
         react_1.default.createElement("footer", { className: "footer footer-center bg-base-300 text-base-content p-4" },
             react_1.default.createElement("aside", null,
                 react_1.default.createElement("p", null,
@@ -47208,9 +47206,9 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = Target;
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const time_1 = __webpack_require__(/*! ../../utils/time */ "./client/utils/time.ts");
-const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
+const StreamProvider_1 = __webpack_require__(/*! ../../hooks/StreamProvider */ "./client/hooks/StreamProvider.tsx");
 function Target({ target, fillContainer }) {
-    const { deleteTargetAction } = (0, TargetsProvider_1.useTargetStream)();
+    const { deleteTargetAction } = (0, StreamProvider_1.useStream)();
     return (react_1.default.createElement("div", { className: "bg-neutral p-4 rounded shadow-md w-full relative " + (fillContainer ? "" : "md:w-1/2 lg:w-1/3 xl:w-1/4") },
         react_1.default.createElement("button", { className: "btn btn-xs btn-warning right-3 bottom-3 absolute", onClick: () => deleteTargetAction(target.id) }, "Delete"),
         react_1.default.createElement("h2", { className: "text-lg font-semibold mb-2" }, target.hostname),
@@ -47301,13 +47299,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
+const StreamProvider_1 = __webpack_require__(/*! ../../hooks/StreamProvider */ "./client/hooks/StreamProvider.tsx");
 const Target_1 = __importDefault(__webpack_require__(/*! ../Target/Target */ "./client/components/Target/Target.tsx"));
 function Home({}) {
-    const { targets, lastUpdatedID } = (0, TargetsProvider_1.useTargetStream)();
-    const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+    const { targets, lastTargetUpdatedID } = (0, StreamProvider_1.useStream)();
+    const lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
     function parseHomeInfo() {
-        let lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+        let lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
         let numberOfTargets = targets.length;
         let numberOfUsers = targets.reduce((p, v) => p + v.users.length, 0);
         let numberOfApps = targets.reduce((p, v) => p + v.apps.length, 0);
@@ -47394,167 +47392,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
-const LogsProvider_1 = __webpack_require__(/*! ../../hooks/LogsProvider */ "./client/hooks/LogsProvider.tsx");
-const targetId = "ba066a29bd5dc07c63a9ac630a72462ec67c492a3805eed727e0e443e214caab";
-// const fakeLogs: LogEvent.Log[] = [
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-// ];
+const StreamProvider_1 = __webpack_require__(/*! ../../hooks/StreamProvider */ "./client/hooks/StreamProvider.tsx");
+const time_1 = __webpack_require__(/*! ../../utils/time */ "./client/utils/time.ts");
 function Logs({}) {
-    const { logs, lastUpdatedID, allEventTypes } = (0, LogsProvider_1.useLogStream)();
-    const { getTargetsByIdAndName, getTargetNameByID } = (0, TargetsProvider_1.useTargetStream)();
+    const { logs, lastLogUpdatedID, allEventTypes, getTargetsByIdAndName, getTargetNameByID } = (0, StreamProvider_1.useStream)();
     const [TargetSelected, setTargetSelected] = (0, react_1.useState)("");
     const [EventSelected, setEventSelected] = (0, react_1.useState)("");
-    const processLogs = () => {
+    const [DateUp, setDateUp] = (0, react_1.useState)(false);
+    const [DisplayedLogs, setDisplayedLogs] = (0, react_1.useState)(logs);
+    (0, react_1.useEffect)(() => {
         let filteredLogs = logs;
         if (TargetSelected != "") {
             if (Array.isArray(TargetSelected))
@@ -47568,8 +47414,9 @@ function Logs({}) {
             else
                 filteredLogs = filteredLogs.filter((log) => log.event === EventSelected);
         }
-        return filteredLogs;
-    };
+        filteredLogs.sort((a, b) => (DateUp ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
+        setDisplayedLogs(filteredLogs);
+    }, [DateUp, logs, TargetSelected, EventSelected]);
     const parseStats = () => {
         const amountOfUrgent = logs.reduce((prev, v) => (v.urgent ? prev + 1 : prev), 0);
         return { amountOfUrgent: amountOfUrgent };
@@ -47581,6 +47428,9 @@ function Logs({}) {
                 react_1.default.createElement("div", { className: "flex" },
                     react_1.default.createElement("div", { className: "card-title" }, "Logs"),
                     react_1.default.createElement("div", { className: "ml-auto" },
+                        react_1.default.createElement("div", { onClick: () => {
+                                setDateUp(!DateUp);
+                            }, role: "button", className: "btn m-1" }, DateUp ? "Recent" : "Old"),
                         react_1.default.createElement("div", { className: "dropdown dropdown-end" },
                             react_1.default.createElement("div", { tabIndex: 0, role: "button", className: "btn m-1" }, "Filter Event"),
                             react_1.default.createElement("ul", { tabIndex: 0, className: "dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow" },
@@ -47605,9 +47455,9 @@ function Logs({}) {
                                 react_1.default.createElement("th", null, "Target"),
                                 react_1.default.createElement("th", null, "Message"),
                                 react_1.default.createElement("th", null, "Argent"))),
-                        react_1.default.createElement("tbody", null, processLogs().map((log, index) => (react_1.default.createElement("tr", null,
+                        react_1.default.createElement("tbody", null, DisplayedLogs.map((log, index) => (react_1.default.createElement("tr", null,
                             react_1.default.createElement("th", null, index),
-                            react_1.default.createElement("td", null, log.timestamp),
+                            react_1.default.createElement("td", null, (0, time_1.convertDateToHumanReadable)(log.timestamp)),
                             react_1.default.createElement("td", null, log.event.toUpperCase()),
                             react_1.default.createElement("td", null, getTargetNameByID(log.targetId)),
                             react_1.default.createElement("td", null, log.message),
@@ -47643,11 +47493,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importDefault(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const TargetsProvider_1 = __webpack_require__(/*! ../../hooks/TargetsProvider */ "./client/hooks/TargetsProvider.tsx");
+const StreamProvider_1 = __webpack_require__(/*! ../../hooks/StreamProvider */ "./client/hooks/StreamProvider.tsx");
 const Target_1 = __importDefault(__webpack_require__(/*! ../Target/Target */ "./client/components/Target/Target.tsx"));
 function Targets({}) {
-    const { targets, lastUpdatedID, deleteTargetAction } = (0, TargetsProvider_1.useTargetStream)();
-    const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+    const { targets, lastTargetUpdatedID, deleteTargetAction } = (0, StreamProvider_1.useStream)();
+    const lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
     return (react_1.default.createElement("div", { className: "p-7 flex flex-wrap gap-3 justify-center" }, targets && targets.map((target) => react_1.default.createElement(Target_1.default, { fillContainer: false, target: target }))));
 }
 exports["default"] = Targets;
@@ -47780,10 +47630,10 @@ exports.useAuth = useAuth;
 
 /***/ }),
 
-/***/ "./client/hooks/LogsProvider.tsx":
-/*!***************************************!*\
-  !*** ./client/hooks/LogsProvider.tsx ***!
-  \***************************************/
+/***/ "./client/hooks/StreamProvider.tsx":
+/*!*****************************************!*\
+  !*** ./client/hooks/StreamProvider.tsx ***!
+  \*****************************************/
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
 "use strict";
@@ -47812,28 +47662,34 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.LogStreamProvider = exports.useLogStream = void 0;
+exports.StreamProvider = exports.useStream = void 0;
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const AuthProvider_1 = __webpack_require__(/*! ./AuthProvider */ "./client/hooks/AuthProvider.tsx");
 const Events_1 = __webpack_require__(/*! netlocklib/dist/Events */ "./lib/dist/Events/index.js");
 // Create a Context object
-const LogStreamContext = (0, react_1.createContext)({
+const StreamContext = (0, react_1.createContext)({
+    targets: [],
+    lastTargetUpdatedID: "",
+    deleteTargetAction: async (data) => { },
+    getTargetsByIdAndName: () => [],
+    getTargetNameByID: (id) => "",
     logs: [],
-    lastUpdatedID: undefined,
+    lastLogUpdatedID: undefined,
     allEventTypes: [],
     getLogBy: (options) => [],
 });
 // Create a custom hook that allows easy access to the Context
-const useLogStream = () => {
-    return (0, react_1.useContext)(LogStreamContext);
+const useStream = () => {
+    return (0, react_1.useContext)(StreamContext);
 };
-exports.useLogStream = useLogStream;
+exports.useStream = useStream;
 // Create a Provider component
-const LogStreamProvider = ({ setAlert, children }) => {
+const StreamProvider = ({ setAlert, children }) => {
     const { token } = (0, AuthProvider_1.useAuth)(); // get the token from useAuth
+    const [targets, setTargets] = (0, react_1.useState)([]);
+    const [lastTargetUpdatedID, setLastTargetUpdatedID] = (0, react_1.useState)("");
     const [logs, setLogs] = (0, react_1.useState)([]);
-    const [lastUpdatedID, setLastUpdatedID] = (0, react_1.useState)();
-    // Create an array of all event types
+    const [lastLogUpdatedID, setLastLogUpdatedID] = (0, react_1.useState)();
     const allEventTypes = [
         Events_1.FileEvent.Types.FileAccessed,
         Events_1.FileEvent.Types.FileCreated,
@@ -47855,102 +47711,6 @@ const LogStreamProvider = ({ setAlert, children }) => {
         Events_1.UserEvent.Types.UserLoggedIn,
         Events_1.UserEvent.Types.UserLoggedOut,
     ];
-    (0, react_1.useEffect)(() => {
-        const source = new EventSource("/api/user/logs/stream" + `?token=${token}`);
-        source.onmessage = function (event) {
-            const log = JSON.parse(event.data);
-            //might want to add host name to logs
-            if (log.urgent)
-                setAlert({ type: "warning", message: log.message, time: 3000 });
-            setLogs((prevLogs) => {
-                let newState = [...prevLogs];
-                newState.push(log);
-                return newState.sort((a, b) => a.timestamp - b.timestamp);
-            });
-            setLastUpdatedID(() => log);
-        };
-        return () => {
-            source.close();
-        };
-    }, [token]);
-    const getLogBy = (options) => {
-        const { id, event } = options;
-        let filteredLogs = logs;
-        if (id) {
-            if (Array.isArray(id))
-                filteredLogs = filteredLogs.filter((log) => id.includes(log.targetId));
-            else
-                filteredLogs = filteredLogs.filter((log) => log.targetId === id);
-        }
-        if (event) {
-            if (Array.isArray(event))
-                filteredLogs = filteredLogs.filter((log) => event.includes(log.event));
-            else
-                filteredLogs = filteredLogs.filter((log) => log.event === event);
-        }
-        return filteredLogs;
-    };
-    const value = { logs, lastUpdatedID, getLogBy, allEventTypes };
-    return react_1.default.createElement(LogStreamContext.Provider, { value: value }, children);
-};
-exports.LogStreamProvider = LogStreamProvider;
-
-
-/***/ }),
-
-/***/ "./client/hooks/TargetsProvider.tsx":
-/*!******************************************!*\
-  !*** ./client/hooks/TargetsProvider.tsx ***!
-  \******************************************/
-/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
-
-"use strict";
-
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.TargetStreamProvider = exports.useTargetStream = void 0;
-const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
-const AuthProvider_1 = __webpack_require__(/*! ./AuthProvider */ "./client/hooks/AuthProvider.tsx");
-// Create a Context object
-const TargetStreamContext = (0, react_1.createContext)({
-    targets: [],
-    lastUpdatedID: "",
-    deleteTargetAction: async (data) => { },
-    getTargetsByIdAndName: () => [],
-    getTargetNameByID: (id) => "",
-});
-// Create a custom hook that allows easy access to the Context
-const useTargetStream = () => {
-    return (0, react_1.useContext)(TargetStreamContext);
-};
-exports.useTargetStream = useTargetStream;
-// Create a Provider component
-const TargetStreamProvider = ({ children }) => {
-    const { token } = (0, AuthProvider_1.useAuth)(); // get the token from useAuth
-    const [targets, setTargets] = (0, react_1.useState)([]);
-    const [lastUpdatedID, setLastUpdatedID] = (0, react_1.useState)("");
     const getTargetNameByID = (id) => {
         const t = targets.find((v) => v.id === id);
         if (!t)
@@ -47978,8 +47738,19 @@ const TargetStreamProvider = ({ children }) => {
         }
     };
     (0, react_1.useEffect)(() => {
-        const source = new EventSource("/api/user/targets/stream" + `?token=${token}`);
-        source.onmessage = function (event) {
+        const source = new EventSource("/api/user/stream" + `?token=${token}`);
+        const init = async () => {
+            const results = await fetch("/api/user/data/all", {
+                headers: {
+                    authorization: token,
+                },
+                method: "GET",
+            });
+            let { targets, logs } = await results.json();
+            setTargets(targets);
+            setLogs(logs);
+        };
+        source.addEventListener("targets", (event) => {
             const target = JSON.parse(event.data);
             setTargets((prevTargets) => {
                 let newState = [...prevTargets];
@@ -47990,10 +47761,23 @@ const TargetStreamProvider = ({ children }) => {
                 else {
                     newState.push(target);
                 }
-                return newState.sort((a, b) => a.hostname.localeCompare(b.hostname, undefined, { sensitivity: "base" }));
+                return newState.sort((a, b) => a.hostname.localeCompare(b?.hostname, undefined, { sensitivity: "base" }));
             });
-            setLastUpdatedID(() => target.id);
-        };
+            setLastTargetUpdatedID(() => target.id);
+        });
+        source.addEventListener("logs", (event) => {
+            const log = JSON.parse(event.data);
+            //might want to add host name to logs
+            if (log.urgent)
+                setAlert({ type: "warning", message: log.message, time: 3000 });
+            setLogs((prevLogs) => {
+                let newState = [...prevLogs];
+                newState.push(log);
+                return newState.sort((a, b) => a.timestamp - b.timestamp);
+            });
+            setLastLogUpdatedID(() => log);
+        });
+        init();
         return () => {
             source.close();
         };
@@ -48003,10 +47787,37 @@ const TargetStreamProvider = ({ children }) => {
             return { name: t.hostname, id: t.id };
         });
     };
-    const value = { targets, lastUpdatedID, deleteTargetAction, getTargetsByIdAndName, getTargetNameByID };
-    return react_1.default.createElement(TargetStreamContext.Provider, { value: value }, children);
+    const getLogBy = (options) => {
+        const { id, event } = options;
+        let filteredLogs = logs;
+        if (id) {
+            if (Array.isArray(id))
+                filteredLogs = filteredLogs.filter((log) => id.includes(log.targetId));
+            else
+                filteredLogs = filteredLogs.filter((log) => log.targetId === id);
+        }
+        if (event) {
+            if (Array.isArray(event))
+                filteredLogs = filteredLogs.filter((log) => event.includes(log.event));
+            else
+                filteredLogs = filteredLogs.filter((log) => log.event === event);
+        }
+        return filteredLogs;
+    };
+    const value = {
+        targets,
+        lastTargetUpdatedID,
+        deleteTargetAction,
+        getTargetsByIdAndName,
+        getTargetNameByID,
+        logs,
+        lastLogUpdatedID,
+        getLogBy,
+        allEventTypes,
+    };
+    return react_1.default.createElement(StreamContext.Provider, { value: value }, children);
 };
-exports.TargetStreamProvider = TargetStreamProvider;
+exports.StreamProvider = StreamProvider;
 
 
 /***/ }),

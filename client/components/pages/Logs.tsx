@@ -1,172 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useTargetStream } from "../../hooks/TargetsProvider";
+import { useStream } from "../../hooks/StreamProvider";
 import { LogEvent } from "netlocklib/dist/Events";
-import { useLogStream } from "../../hooks/LogsProvider";
+import { convertDateToHumanReadable } from "../../utils/time";
 
 type Props = {};
 
-const targetId = "ba066a29bd5dc07c63a9ac630a72462ec67c492a3805eed727e0e443e214caab";
-
-// const fakeLogs: LogEvent.Log[] = [
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "fileCreated",
-//         user: "admin",
-//         timestamp: 1678923400,
-//         description: "A new confidential document ('ProjectX_Report.docx') was created in the secure folder.",
-//         message: "File created successfully.",
-//         id: "log1",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "processCreated",
-//         user: "user123",
-//         timestamp: 1678923500,
-//         description: "The critical system process 'kernel32.exe' was launched.",
-//         message: "Process started.",
-//         id: "log2",
-//         targetId,
-//         urgent: true,
-//     },
-//     {
-//         event: "userLoggedIn",
-//         user: "john_doe",
-//         timestamp: 1678923600,
-//         description: "User 'john_doe' successfully logged in to the system.",
-//         message: "User logged in.",
-//         id: "log3",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "fileAccessed",
-//         user: "developer",
-//         timestamp: 1678923700,
-//         description: "The configuration file ('app_settings.json') was accessed for updates.",
-//         message: "File accessed.",
-//         id: "log4",
-//         targetId,
-//         urgent: false,
-//     },
-//     {
-//         event: "config",
-//         user: "sysadmin",
-//         timestamp: 1678923800,
-//         description: "System configuration settings were modified to enhance security.",
-//         message: "System configuration updated.",
-//         id: "log5",
-//         targetId,
-//         urgent: true,
-//     },
-// ];
-
 function Logs({}: Props) {
-    const { logs, lastUpdatedID, allEventTypes } = useLogStream();
-    const { getTargetsByIdAndName, getTargetNameByID } = useTargetStream();
+    const { logs, lastLogUpdatedID, allEventTypes, getTargetsByIdAndName, getTargetNameByID } = useStream();
 
     const [TargetSelected, setTargetSelected] = useState<string>("");
     const [EventSelected, setEventSelected] = useState<string>("");
-    const processLogs = (): LogEvent.Log[] => {
+    const [DateUp, setDateUp] = useState<boolean>(false);
+    const [DisplayedLogs, setDisplayedLogs] = useState(logs);
+    useEffect(() => {
         let filteredLogs = logs;
 
         if (TargetSelected != "") {
@@ -179,8 +25,9 @@ function Logs({}: Props) {
             else filteredLogs = filteredLogs.filter((log) => log.event === EventSelected);
         }
 
-        return filteredLogs;
-    };
+        filteredLogs.sort((a, b) => (DateUp ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
+        setDisplayedLogs(filteredLogs);
+    }, [DateUp, logs, TargetSelected, EventSelected]);
 
     const parseStats = () => {
         const amountOfUrgent = logs.reduce((prev, v) => (v.urgent ? prev + 1 : prev), 0);
@@ -195,6 +42,15 @@ function Logs({}: Props) {
                     <div className="flex">
                         <div className="card-title">Logs</div>
                         <div className="ml-auto">
+                            <div
+                                onClick={() => {
+                                    setDateUp(!DateUp);
+                                }}
+                                role="button"
+                                className="btn m-1"
+                            >
+                                {DateUp ? "Recent" : "Old"}
+                            </div>
                             <div className="dropdown dropdown-end">
                                 <div tabIndex={0} role="button" className="btn m-1">
                                     Filter Event
@@ -241,10 +97,10 @@ function Logs({}: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {processLogs().map((log, index) => (
+                                {DisplayedLogs.map((log, index) => (
                                     <tr>
                                         <th>{index}</th>
-                                        <td>{log.timestamp}</td>
+                                        <td>{convertDateToHumanReadable(log.timestamp)}</td>
                                         <td>{log.event.toUpperCase()}</td>
                                         <td>{getTargetNameByID(log.targetId)}</td>
                                         <td>{log.message}</td>

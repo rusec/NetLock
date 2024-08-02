@@ -1,12 +1,12 @@
 import React from "react";
 import { target } from "netlocklib/dist/Target";
 import { convertDateToHumanReadable } from "../../utils/time";
-import { useTargetStream } from "../../hooks/TargetsProvider";
+import { useStream } from "../../hooks/StreamProvider";
 
 type Props = { target: target; fillContainer: boolean };
 
 export default function Target({ target, fillContainer }: Props) {
-    const { deleteTargetAction } = useTargetStream();
+    const { deleteTargetAction } = useStream();
 
     return (
         <div className={"bg-neutral p-4 rounded shadow-md w-full relative " + (fillContainer ? "" : "md:w-1/2 lg:w-1/3 xl:w-1/4")}>

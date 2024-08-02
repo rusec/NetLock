@@ -1,13 +1,13 @@
 import React from "react";
-import { useTargetStream } from "../../hooks/TargetsProvider";
+import { useStream } from "../../hooks/StreamProvider";
 import { convertDateToHumanReadable } from "../../utils/time";
 import Target from "../Target/Target";
 
 type Props = {};
 
 function Targets({}: Props) {
-    const { targets, lastUpdatedID, deleteTargetAction } = useTargetStream();
-    const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+    const { targets, lastTargetUpdatedID, deleteTargetAction } = useStream();
+    const lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
     return (
         <div className="p-7 flex flex-wrap gap-3 justify-center">
             {targets && targets.map((target) => <Target fillContainer={false} target={target} />)}

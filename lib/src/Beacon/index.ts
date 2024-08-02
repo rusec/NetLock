@@ -2,7 +2,7 @@ import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
 
-class Beacon {
+export class Beacon {
     token: string | "Not Initialized";
     hostname: string;
     os: string;
@@ -361,5 +361,3 @@ class Beacon {
         return result;
     }
 }
-
-export default Beacon;

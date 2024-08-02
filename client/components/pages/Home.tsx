@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { target } from "netlocklib/dist/Target";
-import { useTargetStream } from "../../hooks/TargetsProvider";
+import { useStream } from "../../hooks/StreamProvider";
 import Target from "../Target/Target";
 
 type Props = {
@@ -18,11 +18,11 @@ interface HomeInfo {
 }
 
 function Home({}: Props) {
-    const { targets, lastUpdatedID } = useTargetStream();
-    const lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+    const { targets, lastTargetUpdatedID } = useStream();
+    const lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
 
     function parseHomeInfo() {
-        let lastUpdatedTarget = targets.find((v) => v.id == lastUpdatedID) || false;
+        let lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
         let numberOfTargets = targets.length;
         let numberOfUsers = targets.reduce((p, v) => p + v.users.length, 0);
         let numberOfApps = targets.reduce((p, v) => p + v.apps.length, 0);

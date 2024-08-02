@@ -159,21 +159,36 @@ router.post("/resetpass", limiter, async (req: Request, res: Response, next: Nex
  *       401:
  *         description: Unauthorized.
  */
-router.get("/targets/stream", authenticate, validateUser, async (req: Request, res: Response) => {
+router.get("/stream", authenticate, validateUser, async (req: Request, res: Response) => {
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
-    let data = await db.getAllTargets();
-
-    for (let i = 0; i < data.length; i++) {
-        const target = data[i];
-        res.write(`data: ${JSON.stringify(target)}\n\n`);
-    }
+    // let targets = await db.getAllTargets();
+    // for (let i = 0; i < targets.length; i++) {
+    //     const target = targets[i];
+    //     res.write(`event:targets\ndata: ${JSON.stringify(target)}\n\n`);
+    // }
 
     databaseEventEmitter.on("target", (target) => {
-        res.write(`data: ${JSON.stringify(target)}\n\n`);
+        res.write(`event:targets\ndata: ${JSON.stringify(target)}\n\n`);
     });
+    // let logs = await db.getAllLogs();
+
+    // for (let i = 0; i < logs.length; i++) {
+    //     const log = logs[i];
+    //     res.write(`event:logs\ndata: ${JSON.stringify(log)}\n\n`);
+    // }
+
+    databaseEventEmitter.on("logs", (data) => {
+        res.write(`event:logs\ndata: ${JSON.stringify(data)}\n\n`);
+    });
+});
+router.get("/data/all", authenticate, validateUser, async (req: Request, res: Response) => {
+    let targets = await db.getAllTargets();
+    let logs = await db.getAllLogs();
+    if (!targets || !logs) return res.status(400).json({ status: "unable to get info" });
+    return res.status(200).json({ targets, logs });
 });
 /**
  * @swagger
@@ -240,23 +255,6 @@ router.delete("/targets/:target", authenticate, validateUser, async (req: Reques
     return res.status(200).json({ status: "target deleted" });
 });
 
-// gets all logs for targets and streams any new logs
-router.get("/logs/stream", authenticate, validateUser, async (req: Request, res: Response) => {
-    res.setHeader("Content-Type", "text/event-stream");
-    res.setHeader("Cache-Control", "no-cache");
-    res.setHeader("Connection", "keep-alive");
-    res.flushHeaders();
-    let data = await db.getAllLogs();
-
-    for (let i = 0; i < data.length; i++) {
-        const log = data[i];
-        res.write(`data: ${JSON.stringify(log)}\n\n`);
-    }
-
-    databaseEventEmitter.on("logs", (data) => {
-        res.write(`data: ${JSON.stringify(data)}\n\n`);
-    });
-});
 // gets logs for target
 router.get("/logs/:target", authenticate, validateUser, async (req: Request, res: Response) => {
     if (!req.params.target) return res.status(400).json({ status: "unable to find target" });

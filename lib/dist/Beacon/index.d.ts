@@ -1,7 +1,7 @@
 import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { Event } from "../Events";
-declare class Beacon {
+export declare class Beacon {
     token: string | "Not Initialized";
     hostname: string;
     os: string;
@@ -71,5 +71,4 @@ declare class Beacon {
     }): Promise<import("../api").ApiStatusResponse>;
     _sendEvent(event: Event): Promise<import("../api").ApiStatusResponse>;
 }
-export default Beacon;
 //# sourceMappingURL=index.d.ts.map

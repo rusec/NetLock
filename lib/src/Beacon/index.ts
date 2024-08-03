@@ -360,4 +360,9 @@ export class Beacon {
         let result = await this.api.postEvent(event, this.token);
         return result;
     }
+    async delete() {
+        if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
+        let result = await this.api.deleteTarget(this.token);
+        return result;
+    }
 }

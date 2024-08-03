@@ -7,26 +7,12 @@ import EventEmitter from "events";
 import { removeFromArray, removeUUIDFromString } from "./utils/utils";
 import { LogEvent } from "netlocklib/dist/Events";
 import { initTarget, target } from "netlocklib/dist/Target";
+import { API } from "netlocklib/dist/api";
 
 type dbEventTypes = {
     logs: [event: LogEvent.Log];
     target: [event: target];
 };
-
-export class DbTargetError extends Error {
-    hostname: string;
-    constructor(hostname: string, message: string) {
-        super(message);
-        this.hostname = hostname;
-    }
-    toJson() {
-        return {
-            status: "Error",
-            hostname: this.hostname,
-            message: this.message,
-        };
-    }
-}
 
 const databaseEventEmitter: EventEmitter<dbEventTypes> = new EventEmitter({
     captureRejections: true,
@@ -66,16 +52,16 @@ class TargetData {
 
     async _getCurrData() {
         let data = await this.db.get(this.id).catch(() => undefined);
-        if (!data) return new DbTargetError(this.data.hostname, `Unable to get current data for target`);
+        if (!data) return new API.DbTargetError(this.data.hostname, `Unable to get current data for target`);
         this.data = data;
         return true;
     }
 
     async updateInterfaceStat(mac: string, state: "down" | "up") {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
         let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index == -1) return new DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
+        if (index == -1) return new API.DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
 
         this.data.interfaces[index].state = state;
         await this._updateData();
@@ -83,9 +69,9 @@ class TargetData {
     }
     async addInterface(mac: string, ip: string, state: "down" | "up") {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
         let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index != -1) return new DbTargetError(this.data.hostname, `Interface already added`);
+        if (index != -1) return new API.DbTargetError(this.data.hostname, `Interface already added`);
         this.data.interfaces.push({
             ip: ip,
             mac: mac,
@@ -96,9 +82,9 @@ class TargetData {
     }
     async updateInterfaceIP(mac: string, ip: string) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
         let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index == -1) return new DbTargetError(this.data.hostname, `Interface not found ${mac}`);
+        if (index == -1) return new API.DbTargetError(this.data.hostname, `Interface not found ${mac}`);
 
         this.data.interfaces[index].ip = ip;
         await this._updateData();
@@ -106,7 +92,7 @@ class TargetData {
     }
     async removeInterface(mac: string) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         removeFromArray(this.data.interfaces, "mac", mac);
         await this._updateData();
@@ -119,10 +105,10 @@ class TargetData {
         }
     ) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         let index = this.data.users.findIndex((i) => i.name == username);
-        if (index != -1) return new DbTargetError(this.data.hostname, `User already added ${username}`);
+        if (index != -1) return new API.DbTargetError(this.data.hostname, `User already added ${username}`);
 
         this.data.users.push({
             lastLogin: options.loggedIn ? new Date().getTime() : new Date(0).getTime(),
@@ -135,7 +121,7 @@ class TargetData {
     }
     async removeUser(username: string) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         removeFromArray(this.data.users, "name", username);
         await this._updateData();
@@ -149,10 +135,10 @@ class TargetData {
         }
     ) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         let index = this.data.users.findIndex((i) => i.name == username);
-        if (index == -1) return new DbTargetError(this.data.hostname, `Unable to find user ${username}`);
+        if (index == -1) return new API.DbTargetError(this.data.hostname, `Unable to find user ${username}`);
 
         if (typeof options.loggedIn == "boolean") {
             this.data.users[index].loggedIn = options.loggedIn;
@@ -164,10 +150,10 @@ class TargetData {
     }
     async addApp(name: string, running: boolean, version: string) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         let index = this.data.apps.findIndex((i) => i.name == name);
-        if (index != -1) return new DbTargetError(this.data.hostname, `Application already added ${name}`);
+        if (index != -1) return new API.DbTargetError(this.data.hostname, `Application already added ${name}`);
 
         this.data.apps.push({
             name: name,
@@ -181,10 +167,10 @@ class TargetData {
 
     async updateApp(app: string, running: boolean) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         let index = this.data.apps.findIndex((i) => i.name == app);
-        if (index == -1) return new DbTargetError(this.data.hostname, `Application unable be found ${app}`);
+        if (index == -1) return new API.DbTargetError(this.data.hostname, `Application unable be found ${app}`);
 
         this.data.apps[index].running = running;
 
@@ -193,7 +179,7 @@ class TargetData {
     }
     async removeApp(app: string) {
         let result = await this._getCurrData();
-        if (result instanceof DbTargetError) return result;
+        if (result instanceof API.DbTargetError) return result;
 
         removeFromArray(this.data.apps, "name", app);
 

@@ -6,39 +6,10 @@ import { beaconToken } from "../../utils/types/token";
 import db from "../../db/db";
 import { createToken } from "../../utils/token";
 import Joi from "joi";
+import { API } from "netlocklib/dist/api";
 let router = Router({
     caseSensitive: true,
 });
-// interface registerRequest {
-//     hostname: string;
-//     os: string;
-//     interfaces: targetInterface[];
-//     users: targetUser[];
-//     apps: targetApp[];
-// }
-// const targetUserSchema = Joi.object({
-//     name: Joi.string().required(),
-// });
-
-// const targetAppSchema = Joi.object({
-//     name: Joi.string().required(),
-//     version: Joi.string().required(),
-// });
-
-// const targetInterfaceSchema = Joi.object({
-//     ip: Joi.string().ip().required(),
-//     mac: Joi.string().required(),
-//     state: Joi.string().valid("down", "up").required(),
-// });
-
-// const targetSchema = Joi.object({
-//     hostname: Joi.string().required(),
-//     os: Joi.string().required(),
-//     active: Joi.boolean().required(),
-//     interfaces: Joi.array().items(targetInterfaceSchema).required(),
-//     users: Joi.array().items(targetUserSchema).required(),
-//     apps: Joi.array().items(targetAppSchema).required(),
-// });
 /**
  * @swagger
  * /api/beacon/register:
@@ -46,7 +17,7 @@ let router = Router({
  *     security:
  *       - bearerAuth: []
  *     summary: Register a beacon
- *     tags: [Targets]
+ *     tags: [Beacons]
  *     requestBody:
  *       required: true
  *       content:
@@ -117,39 +88,43 @@ let router = Router({
  *         description: Unauthorized. The request does not include the correct authorization header.
  */
 
-router.post("/register", isBeacon, async (req: Request, res: Response, next: NextFunction) => {
-    let body = req.body as targetRequest;
-    const { error } = targetRequestSchema.validate(body);
-    if (error) {
-        return res.status(400).json({ status: "Invalid request", error: error.details });
+router.post(
+    "/register",
+    isBeacon,
+    async (req: Request, res: Response<API.ErrorResponse | API.ValidationError | API.TokenResponse>, next: NextFunction) => {
+        let body = req.body as targetRequest;
+        const { error } = targetRequestSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+
+        let target: initTarget = {
+            active: true,
+            interfaces: body.interfaces,
+            hostname: body.hostname,
+            apps: body.apps,
+            lastPing: new Date().getTime(),
+            os: body.os,
+            users: body.users,
+            dateAdded: new Date().getTime(),
+        };
+        let checkID = await db.makeTargetId(target);
+        let checkForAlreadyRequested = await db.getTarget(checkID);
+        if (checkForAlreadyRequested) return res.status(400).json({ status: "error", error: "Beacon already registered" });
+        let id = await db.createTarget(target);
+        let checkForTarget = await db.getTarget(id);
+        if (!id || !checkForTarget) return res.status(400).json({ status: "error", error: "Unable to register beacon" });
+        let beaconTok: beaconToken = {
+            id: id,
+            dateAdded: new Date().toISOString(),
+            ip: req.ip || "unknown",
+            isBeacon: true,
+        };
+
+        let token = await createToken(beaconTok);
+        res.status(200).json({ token: token });
+        //request checks
     }
-
-    let target: initTarget = {
-        active: true,
-        interfaces: body.interfaces,
-        hostname: body.hostname,
-        apps: body.apps,
-        lastPing: new Date().getTime(),
-        os: body.os,
-        users: body.users,
-        dateAdded: new Date().getTime(),
-    };
-    let checkID = await db.makeTargetId(target);
-    let checkForAlreadyRequested = await db.getTarget(checkID);
-    if (checkForAlreadyRequested) return res.status(400).json({ status: "Beacon already registered" });
-    let id = await db.createTarget(target);
-    let checkForTarget = await db.getTarget(id);
-    if (!id || !checkForTarget) return res.status(400).json({ status: "Unable to register beacon" });
-    let beaconTok: beaconToken = {
-        id: id,
-        dateAdded: new Date().toISOString(),
-        ip: req.ip || "unknown",
-        isBeacon: true,
-    };
-
-    let token = await createToken(beaconTok);
-    res.status(200).json({ token: token });
-    //request checks
-});
+);
 
 export { router as BeaconRegisterRouter };

@@ -4,8 +4,9 @@ import crypto from "crypto";
 import { log } from "../../utils/output/debug";
 import { authenticate } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
-import db, { DbTargetError } from "../../db/db";
+import db from "../../db/db";
 import { Event, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent, eventSchema } from "netlocklib/dist/Events";
+import { API } from "netlocklib/dist/api";
 let router = Router({
     caseSensitive: true,
 });
@@ -93,188 +94,286 @@ let router = Router({
  *           type: integer
  *           description: The date the target was added.
  */
-
+/**
+ * @swagger
+ * /api/beacon/event:
+ *  post:
+ *    summary: Handle various events
+ *    tags:
+ *      - Beacons
+ *    security:
+ *      - bearerAuth: []
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              event:
+ *                type: string
+ *                description: Type of event
+ *                enum: [fileAccessed, fileCreated, fileDeleted, filePermission, config, interfaceDown, interfaceUp, interfaceIpChange, interfaceCreated, interfaceDeleted, kernel, processCreated, processEnded, regEdit, userCreated, userDeleted, userGroupChange, userLoggedIn, userLoggedOut]
+ *              file:
+ *                type: string
+ *                description: File related to the event
+ *              user:
+ *                type: string
+ *                description: User related to the event
+ *              permissions:
+ *                type: string
+ *                description: Permissions related to the event
+ *              mac:
+ *                type: string
+ *                description: MAC address related to the event
+ *              ip:
+ *                type: string
+ *                description: IP address related to the event
+ *              pid:
+ *                type: integer
+ *                description: Process ID related to the event
+ *              name:
+ *                type: string
+ *                description: Name related to the event
+ *              key:
+ *                type: string
+ *                description: Registry key related to the event
+ *              value:
+ *                type: string
+ *                description: Registry value related to the event
+ *              description:
+ *                type: string
+ *                description: Description related to the event
+ *              loggedIn:
+ *                type: boolean
+ *                description: User login status
+ *            required:
+ *              - event
+ *    responses:
+ *      '200':
+ *        description: Success
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: success
+ *      '400':
+ *        description: Invalid request
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: Invalid request
+ *                error:
+ *                  type: string
+ *                  example: Error details
+ */
 //endpoint to parse out beacon events and creates a targetLogEvent and updates target info in database
-router.post("/event", authenticate, isBeacon, async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    let body = req.body as Event;
-    let { error } = eventSchema.validate(body);
-    if (error) {
-        return res.status(400).json({ status: "Invalid request", error: error.details });
+router.post(
+    "/event",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        let body = req.body as Event;
+        let { error } = eventSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
+
+        let target = await db.getTarget(req.client.id);
+
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+        let result: boolean | API.DbTargetError = false;
+        switch (body.event) {
+            case "fileAccessed": {
+                let data = body as FileEvent.event;
+
+                let message = `File ${data.file} Accessed By ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+                break;
+            }
+
+            case "fileCreated": {
+                let data = body as FileEvent.event;
+
+                let message = `File ${data.file} Created By ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+
+                break;
+            }
+            case "fileDeleted": {
+                let data = body as FileEvent.event;
+
+                let message = `File ${data.file} Deleted By ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+
+                break;
+            }
+            case "filePermission": {
+                let data = body as FileEvent.event;
+                let message = `File ${data.file} Permissions By ${data.user} | ${data.permissions}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+
+                break;
+            }
+            case "config": {
+                let data = body as KernelEvent.event;
+                let message = `Config ${data.file} changed By ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                break;
+            }
+            case "interfaceDown": {
+                let data = body as NetworkEvent.event;
+                let message = `Interface ${data.mac} Down`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateInterfaceStat(data.mac, "down");
+
+                await target.addLog(log);
+
+                break;
+            }
+            case "interfaceUp": {
+                let data = body as NetworkEvent.event;
+                let message = `Interface ${data.mac} Up`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateInterfaceStat(data.mac, "up");
+
+                await target.addLog(log);
+                break;
+            }
+            case "interfaceIpChange": {
+                let data = body as NetworkEvent.event;
+                let message = `Interface ${data.mac} Ip change ${data.ip}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateInterfaceIP(data.mac, data.ip);
+                await target.addLog(log);
+                break;
+            }
+            case "interfaceCreated": {
+                let data = body as NetworkEvent.event;
+                let message = `Interface ${data.mac} ${data.ip} Created`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.addInterface(data.mac, data.ip, data.state);
+                await target.addLog(log);
+                break;
+            }
+            case "interfaceDeleted": {
+                let data = body as NetworkEvent.event;
+                let message = `Interface ${data.mac} ${data.ip} Deleted`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.removeInterface(data.mac);
+                await target.addLog(log);
+                break;
+            }
+            case "kernel": {
+                let data = body as KernelEvent.event;
+                let message = `Kernel ${data.file} ${data.description}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+                break;
+            }
+            case "processCreated": {
+                let data = body as ProcessEvent.event;
+                let message = `Process ${data.name} ${data.pid} Created`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateApp(data.name, true);
+                await target.addLog(log);
+                break;
+            }
+            case "processEnded": {
+                let data = body as ProcessEvent.event;
+                let message = `Process ${data.name} ${data.pid} Ended`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateApp(data.name, false);
+                await target.addLog(log);
+                break;
+            }
+            case "regEdit": {
+                let data = body as RegEditEvent.event;
+                let message = `Reg Edit ${data.key} ${data.value}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+                break;
+            }
+            case "userCreated": {
+                let data = body as UserEvent.event;
+                let message = `New User ${data.user} created`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.addUser(data.user, { loggedIn: data.loggedIn });
+                await target.addLog(log);
+                break;
+            }
+            case "userDeleted": {
+                let data = body as UserEvent.event;
+                let message = `User ${data.user} deleted`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.removeUser(data.user);
+                await target.addLog(log);
+                break;
+            }
+            case "userGroupChange": {
+                let data = body as UserEvent.event;
+                let message = `User ${data.user} group changed`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                await target.addLog(log);
+                result = true;
+                break;
+            }
+            case "userLoggedIn": {
+                let data = body as UserEvent.event;
+                let message = `User ${data.user} Logged in`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateUser(data.user, { loggedIn: true, lastLogin: new Date().getTime() });
+                await target.addLog(log);
+                break;
+            }
+            case "userLoggedOut": {
+                let data = body as UserEvent.event;
+                let message = `User ${data.user} Logged in`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateUser(data.user, { loggedIn: false });
+                await target.addLog(log);
+                break;
+            }
+            default:
+                return res.status(400).json({ status: "error", error: `Unknown Event ${body.event}` });
+                break;
+        }
+        if (result instanceof API.DbTargetError) return res.status(400).json(result.toJson());
+        return res.status(200).json({ status: "success", message: `event${body.event} Logged` });
     }
-    if (!req.client) return res.status(400).json({ status: "Invalid request" });
+);
+router.delete("/", authenticate, isBeacon, async (req: AuthenticatedRequest, res: Response<API.ErrorResponse | API.SuccessResponse>) => {
+    if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
     let target = await db.getTarget(req.client.id);
 
-    if (!target) return res.status(400).json({ status: "Target Not Found" });
-    let result: boolean | DbTargetError = false;
-    switch (body.event) {
-        case "fileAccessed": {
-            let data = body as FileEvent.event;
+    if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+    let result = await target.delTarget();
+    if (!result) return res.status(400).json({ status: "error", error: `Unable to delete` });
 
-            let message = `File ${data.file} Accessed By ${data.user}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-            break;
-        }
-
-        case "fileCreated": {
-            let data = body as FileEvent.event;
-
-            let message = `File ${data.file} Created By ${data.user}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-
-            break;
-        }
-        case "fileDeleted": {
-            let data = body as FileEvent.event;
-
-            let message = `File ${data.file} Deleted By ${data.user}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-
-            break;
-        }
-        case "filePermission": {
-            let data = body as FileEvent.event;
-            let message = `File ${data.file} Permissions By ${data.user} | ${data.permissions}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-
-            break;
-        }
-        case "config": {
-            let data = body as KernelEvent.event;
-            let message = `Config ${data.file} changed By ${data.user}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            break;
-        }
-        case "interfaceDown": {
-            let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} Down`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateInterfaceStat(data.mac, "down");
-
-            await target.addLog(log);
-
-            break;
-        }
-        case "interfaceUp": {
-            let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} Up`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateInterfaceStat(data.mac, "up");
-
-            await target.addLog(log);
-            break;
-        }
-        case "interfaceIpChange": {
-            let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} Ip change ${data.ip}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateInterfaceIP(data.mac, data.ip);
-            await target.addLog(log);
-            break;
-        }
-        case "interfaceCreated": {
-            let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} ${data.ip} Created`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.addInterface(data.mac, data.ip, data.state);
-            await target.addLog(log);
-            break;
-        }
-        case "interfaceDeleted": {
-            let data = body as NetworkEvent.event;
-            let message = `Interface ${data.mac} ${data.ip} Deleted`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.removeInterface(data.mac);
-            await target.addLog(log);
-            break;
-        }
-        case "kernel": {
-            let data = body as KernelEvent.event;
-            let message = `Kernel ${data.file} ${data.description}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-            break;
-        }
-        case "processCreated": {
-            let data = body as ProcessEvent.event;
-            let message = `Process ${data.name} ${data.pid} Created`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateApp(data.name, true);
-            await target.addLog(log);
-            break;
-        }
-        case "processEnded": {
-            let data = body as ProcessEvent.event;
-            let message = `Process ${data.name} ${data.pid} Ended`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateApp(data.name, false);
-            await target.addLog(log);
-            break;
-        }
-        case "regEdit": {
-            let data = body as RegEditEvent.event;
-            let message = `Reg Edit ${data.key} ${data.value}`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-            break;
-        }
-        case "userCreated": {
-            let data = body as UserEvent.event;
-            let message = `New User ${data.user} created`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.addUser(data.user, { loggedIn: data.loggedIn });
-            await target.addLog(log);
-            break;
-        }
-        case "userDeleted": {
-            let data = body as UserEvent.event;
-            let message = `User ${data.user} deleted`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.removeUser(data.user);
-            await target.addLog(log);
-            break;
-        }
-        case "userGroupChange": {
-            let data = body as UserEvent.event;
-            let message = `User ${data.user} group changed`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            await target.addLog(log);
-            result = true;
-            break;
-        }
-        case "userLoggedIn": {
-            let data = body as UserEvent.event;
-            let message = `User ${data.user} Logged in`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateUser(data.user, { loggedIn: true, lastLogin: new Date().getTime() });
-            await target.addLog(log);
-            break;
-        }
-        case "userLoggedOut": {
-            let data = body as UserEvent.event;
-            let message = `User ${data.user} Logged in`;
-            let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-            result = await target.updateUser(data.user, { loggedIn: false });
-            await target.addLog(log);
-            break;
-        }
-        default:
-            return res.status(400).json({ status: `Unknown Event ${body.event}` });
-            break;
-    }
-    if (result instanceof DbTargetError) return res.status(400).json(result.toJson());
-    return res.status(200).json({ status: "success" });
+    return res.status(200).json({ status: "success", message: `Deleted ${req.client.id}` });
 });
-
 export { router as BeaconEventRouter };

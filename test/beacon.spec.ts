@@ -192,4 +192,8 @@ describe("Beacon Class", function () {
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
+    afterAll(async () => {
+        const response = await beacon.delete();
+        console.log(response);
+    });
 });

@@ -10,7 +10,7 @@ function Logs({}: Props) {
 
     const [TargetSelected, setTargetSelected] = useState<string>("");
     const [EventSelected, setEventSelected] = useState<string>("");
-    const [DateUp, setDateUp] = useState<boolean>(false);
+    const [DateUp, setDateUp] = useState<"Up" | "Down">("Up");
     const [DisplayedLogs, setDisplayedLogs] = useState(logs);
     useEffect(() => {
         let filteredLogs = logs;
@@ -25,7 +25,7 @@ function Logs({}: Props) {
             else filteredLogs = filteredLogs.filter((log) => log.event === EventSelected);
         }
 
-        filteredLogs.sort((a, b) => (DateUp ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
+        filteredLogs.sort((a, b) => (DateUp == "Up" ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
         setDisplayedLogs(filteredLogs);
     }, [DateUp, logs, TargetSelected, EventSelected]);
 
@@ -48,18 +48,18 @@ function Logs({}: Props) {
                         <div className="ml-auto">
                             <div
                                 onClick={() => {
-                                    setDateUp(!DateUp);
+                                    setDateUp(DateUp == "Up" ? "Down" : "Up");
                                 }}
                                 role="button"
                                 className="btn m-1"
                             >
-                                {DateUp ? "Recent" : "Old"}
+                                {DateUp == "Up" ? "Recent" : "Old"}
                             </div>
                             <div className="dropdown dropdown-end">
                                 <div tabIndex={0} role="button" className="btn m-1">
                                     Filter Event
                                 </div>
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[2] w-52 p-2 shadow">
                                     <li>
                                         <a onClick={() => setEventSelected("")}>All</a>
                                     </li>
@@ -74,7 +74,7 @@ function Logs({}: Props) {
                                 <div tabIndex={0} role="button" className="btn m-1">
                                     Filter Target
                                 </div>
-                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+                                <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[2] w-52 p-2 shadow">
                                     <li>
                                         <a onClick={() => setTargetSelected("")}>All</a>
                                     </li>
@@ -88,9 +88,9 @@ function Logs({}: Props) {
                         </div>
                     </div>
                     <div className="overflow-x-auto overflow-y-auto max-h-lvh">
-                        <table className="table w-full">
+                        <table className="table w-full table-pin-rows">
                             <thead>
-                                <tr className="bg-primary text-white">
+                                <tr className="bg-base-200 text-white">
                                     <th></th>
                                     <th>Date</th>
                                     <th>Event</th>

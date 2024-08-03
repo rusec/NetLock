@@ -1,11 +1,9 @@
-import express, { NextFunction, Request, Response, Router } from "express";
+import { NextFunction, Request, Response, Router } from "express";
 import { isBeacon } from "../../utils/auth";
 import { initTarget, targetRequest, targetRequestSchema } from "netlocklib/dist/Target";
-// import { initTarget, targetApp, targetInterface, targetUser } from "../../utils/types/target";
 import { beaconToken } from "../../utils/types/token";
 import db from "../../db/db";
 import { createToken } from "../../utils/token";
-import Joi from "joi";
 import { API } from "netlocklib/dist/api";
 let router = Router({
     caseSensitive: true,

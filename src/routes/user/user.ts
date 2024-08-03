@@ -1,13 +1,11 @@
-import express, { NextFunction, Request, Response, Router } from "express";
-import { AuthenticatedRequest, beaconToken, userToken } from "../../utils/types/token";
-import crypto from "crypto";
-import { log } from "../../utils/output/debug";
+import { NextFunction, Request, Response, Router } from "express";
+import { userToken } from "../../utils/types/token";
 import { authenticate, createToken } from "../../utils/token";
 import { validateUser } from "./utils/userUtils";
 import db, { databaseEventEmitter } from "../../db/db";
 import Joi from "joi";
 import { rateLimit } from "express-rate-limit";
-import Api, { API } from "netlocklib/dist/api";
+import { API } from "netlocklib/dist/api";
 import { target } from "netlocklib/dist/Target";
 import { LogEvent } from "netlocklib/dist/Events";
 let router = Router({

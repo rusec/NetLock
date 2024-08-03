@@ -1,7 +1,5 @@
-import express, { NextFunction, Request, Response, Router } from "express";
-import { AuthenticatedRequest, beaconToken } from "../../utils/types/token";
-import crypto from "crypto";
-import { log } from "../../utils/output/debug";
+import { NextFunction, Response, Router } from "express";
+import { AuthenticatedRequest } from "../../utils/types/token";
 import { authenticate } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
 import db from "../../db/db";

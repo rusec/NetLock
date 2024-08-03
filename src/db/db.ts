@@ -1,10 +1,10 @@
 import { Level } from "level";
-import { AbstractLevel, AbstractSublevel } from "abstract-level";
+import { AbstractSublevel } from "abstract-level";
 import { DbUser, UserDocRequest } from "./types/db";
 import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
-import { removeFromArray, removeUUIDFromString } from "./utils/utils";
+import { removeFromArray } from "./utils/utils";
 import { LogEvent } from "netlocklib/dist/Events";
 import { initTarget, target } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";

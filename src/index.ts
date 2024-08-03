@@ -11,6 +11,17 @@ import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import crypto from "crypto";
 import { BeaconEventRouter } from "./routes/target/target";
+import args from "args";
+import { log } from "./utils/output/debug";
+
+args.option("passphrase", "passphrase for ssl cert");
+const flags = args.parse(process.argv);
+
+if (!flags.passphrase) {
+    log("No passphrase", "error");
+    process.exit(1);
+}
+
 const app = express();
 app.use((req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(32).toString("hex");
@@ -78,27 +89,14 @@ app.use("/api/user", UserRouter);
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/index.html"));
 });
-if (!fs.existsSync("cert.pem")) {
+if (!fs.existsSync("cert.pem") || !fs.existsSync("key.pem")) {
     throw new Error("Please Create a cert using\nopenssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365\n Thank you");
 }
 
-let rl = readline.createInterface(process.stdin, process.stdout);
-
-// THIS IS FOR PROD
-// rl.question("Please Enter SSL passphrase: ", (i) => {
-//     const options = {
-//         key: fs.readFileSync("key.pem"),
-//         cert: fs.readFileSync("cert.pem"),
-//         passphrase: i,
-//     };
-//     https.createServer(options, app).listen(443, () => {
-//         console.log(`App listening on port ${443}`);
-//     });
-// });
 const optionsSSL = {
     key: fs.readFileSync("key.pem"),
     cert: fs.readFileSync("cert.pem"),
-    passphrase: "pine",
+    passphrase: flags.passphrase,
 };
 https.createServer(optionsSSL, app).listen(443, () => {
     console.log(`App listening on port ${443}`);

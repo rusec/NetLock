@@ -23,7 +23,8 @@
         "axios": "^1.7.2",
         "netlocklib": "file:",
         "ps-list": "^8.1.1",
-        "ps-list-commonjs": "^8.1.2"
+        "ps-list-commonjs": "^8.1.2",
+        "systeminformation": "^5.23.3"
     },
     "types": "dist/index.d.ts"
 }

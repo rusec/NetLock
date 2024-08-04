@@ -2,6 +2,8 @@ import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { Event } from "../Events";
 import { ProcessDescriptor } from "ps-list-commonjs";
+import os from "os";
+import system from "systeminformation";
 export declare namespace ProcessInfo {
     type ProcessName = string;
     type Info = ProcessDescriptor;
@@ -68,6 +70,9 @@ export declare class Beacon {
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     processCreated(process: ProcessInfo.Info): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     processEnded(process: ProcessInfo.Info): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    getProcesses(): Promise<ProcessDescriptor[]>;
+    getNetworkInterfaces(): NodeJS.Dict<os.NetworkInterfaceInfo[]>;
+    getUsers(): Promise<system.Systeminformation.UserData[]>;
     regEdit(key: string, value: string, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;

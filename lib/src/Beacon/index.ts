@@ -2,6 +2,8 @@ import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
 import psList, { ProcessDescriptor } from "ps-list-commonjs";
+import os from "os";
+import system from "systeminformation";
 export namespace ProcessInfo {
     export type ProcessName = string;
     export type Info = ProcessDescriptor;
@@ -304,6 +306,17 @@ export class Beacon {
             descriptor: process,
         };
         return await this._sendEvent(event);
+    }
+    async getProcesses() {
+        return await ProcessInfo.getProcess();
+    }
+    getNetworkInterfaces() {
+        return os.networkInterfaces();
+    }
+    getUsers() {
+        return new Promise<system.Systeminformation.UserData[]>((resolve) => {
+            system.users((d) => resolve(d));
+        });
     }
     async regEdit(
         key: string,

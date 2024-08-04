@@ -149,22 +149,6 @@ class TargetData {
         await this._updateData();
         return true;
     }
-    // async addApp(name: string, running: boolean, version: string) {
-    //     let result = await this._getCurrData();
-    //     if (result instanceof API.DbTargetError) return result;
-
-    //     let index = this.data.apps.findIndex((i) => i.name == name);
-    //     if (index != -1) return new API.DbTargetError(this.data.hostname, `Application already added ${name}`);
-
-    //     this.data.apps.push({
-    //         name: name,
-    //         running: running,
-    //         version: version,
-    //     });
-
-    //     await this._updateData();
-    //     return true;
-    // }
 
     async processCreated(app: ProcessInfo.Info, version: string = "unknown") {
         let result = await this._getCurrData();

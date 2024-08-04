@@ -5,3 +5,4 @@ dist
 db
 !/src/db
 !/lib/dist
+.vscode

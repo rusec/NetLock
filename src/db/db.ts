@@ -290,8 +290,8 @@ class DataBase {
             let logs = await target.getLogs();
             mainLogs.push(logs);
         }
-        let faltLogs = mainLogs.flat();
-        return faltLogs.sort((a: LogEvent.Log, b: LogEvent.Log) => a.timestamp - b.timestamp);
+        let flatLogs = mainLogs.flat();
+        return flatLogs.sort((a: LogEvent.Log, b: LogEvent.Log) => a.timestamp - b.timestamp);
     }
     async getAllTargets() {
         let data: target[] = [];

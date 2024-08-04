@@ -57,8 +57,8 @@ export default function Target({ target, fillContainer }: Props) {
                         {target.apps.map((app) => (
                             <span
                                 key={app.name}
-                                className={`px-2 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`}
-                                title={`Version: ${app.version}`}
+                                className={`px-2 py-1 rounded ${app.instances > 0 ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`}
+                                title={`${JSON.stringify(app, null, 2)}`}
                             >
                                 {app.name}
                             </span>

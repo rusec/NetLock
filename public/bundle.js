@@ -40,12 +40,22 @@ var ProcessEvent;
         Types["ProcessCreated"] = "processCreated";
         Types["ProcessEnded"] = "processEnded";
     })(Types = ProcessEvent.Types || (ProcessEvent.Types = {}));
+    const processDescriptorSchema = joi_1.default.object({
+        pid: joi_1.default.number().required(),
+        name: joi_1.default.string().required(),
+        ppid: joi_1.default.number(),
+        cmd: joi_1.default.string(),
+        cpu: joi_1.default.number(),
+        memory: joi_1.default.number(),
+        uid: joi_1.default.number(),
+    });
     ProcessEvent.processEventSchema = joi_1.default.object({
-        event: joi_1.default.string().valid(ProcessEvent.Types.ProcessCreated, ProcessEvent.Types.ProcessEnded),
+        event: joi_1.default.string().valid(ProcessEvent.Types.ProcessCreated, ProcessEvent.Types.ProcessEnded).required(),
         user: joi_1.default.string().allow(null),
         description: joi_1.default.string(),
-        pid: joi_1.default.string(),
-        name: joi_1.default.string(),
+        pid: joi_1.default.string().required(),
+        name: joi_1.default.string().required(),
+        descriptor: processDescriptorSchema,
     });
 })(ProcessEvent || (exports.ProcessEvent = ProcessEvent = {}));
 var RegEditEvent;
@@ -47267,7 +47277,7 @@ function Target({ target, fillContainer }) {
                 react_1.default.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, target.users.map((user) => (react_1.default.createElement("span", { key: user.name, className: `px-2 py-1 rounded ${user.loggedIn ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`, title: `${user.loggedIn ? "Logged in" : "Logged out"}` }, user.name))))),
             react_1.default.createElement("div", null,
                 react_1.default.createElement("span", { className: "mr-1" }, "Apps:"),
-                react_1.default.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, target.apps.map((app) => (react_1.default.createElement("span", { key: app.name, className: `px-2 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`, title: `Version: ${app.version}` }, app.name))))))));
+                react_1.default.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, target.apps.map((app) => (react_1.default.createElement("span", { key: app.name, className: `px-2 py-1 rounded ${app.instances > 0 ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`, title: `${JSON.stringify(app, null, 2)}` }, app.name))))))));
 }
 
 

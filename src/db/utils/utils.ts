@@ -12,5 +12,10 @@ function removeFromArray(array: any[], key: string, value: string) {
     array.splice(index, 1);
     return true;
 }
-
-export { removeUUIDFromString, removeFromArray };
+function removeValueFromArray(array: any[], value: string) {
+    let index = array.findIndex((i) => i == value);
+    if (index == -1) return false;
+    array.splice(index, 1);
+    return true;
+}
+export { removeUUIDFromString, removeFromArray, removeValueFromArray };

@@ -1,6 +1,20 @@
 import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
+import psList, { ProcessDescriptor } from "ps-list-commonjs";
+export namespace ProcessInfo {
+    export type ProcessName = string;
+    export type Info = ProcessDescriptor;
+    export namespace Windows {
+        export const defaultProcess: ProcessName[] = [];
+    }
+    export namespace Linux {
+        export const defaultProcess: ProcessName[] = [];
+    }
+    export async function getProcess() {
+        return await psList();
+    }
+}
 
 export class Beacon {
     token: string | "Not Initialized";
@@ -267,40 +281,27 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async processCreated(
-        name: string,
-        pid: string,
-        options?: {
-            username: string;
-        }
-    ) {
-        let { username } = options || { username: undefined };
-        this.apps.findIndex((p) => p.name == name);
+    async processCreated(process: ProcessInfo.Info) {
+        let { pid, name } = process;
 
         let event: ProcessEvent.event = {
-            description: `Process Created ${pid} ${name} by ${username}`,
+            description: `Process Created ${pid} ${name}`,
             event: ProcessEvent.Types.ProcessCreated,
-            name: name,
-            pid: pid,
-            user: username,
+            name: process.name,
+            pid: process.pid.toString(),
+            descriptor: process,
         };
         return await this._sendEvent(event);
     }
-    async processEnded(
-        name: string,
-        pid: string,
-        options?: {
-            username: string;
-        }
-    ) {
-        let { username } = options || { username: undefined };
+    async processEnded(process: ProcessInfo.Info) {
+        let { pid, name } = process;
 
         let event: ProcessEvent.event = {
-            description: `Process Ended ${pid} ${name} by ${username}`,
+            description: `Process Ended ${pid} ${name}`,
             event: ProcessEvent.Types.ProcessEnded,
             name: name,
-            pid: pid,
-            user: username,
+            pid: pid.toString(),
+            descriptor: process,
         };
         return await this._sendEvent(event);
     }

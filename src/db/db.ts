@@ -4,10 +4,11 @@ import { DbUser, UserDocRequest } from "./types/db";
 import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
-import { removeFromArray } from "./utils/utils";
+import { removeFromArray, removeValueFromArray } from "./utils/utils";
 import { LogEvent } from "netlocklib/dist/Events";
 import { initTarget, target } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
+import { ProcessInfo } from "netlocklib/dist/Beacon";
 
 type dbEventTypes = {
     logs: [event: LogEvent.Log];
@@ -148,40 +149,58 @@ class TargetData {
         await this._updateData();
         return true;
     }
-    async addApp(name: string, running: boolean, version: string) {
+    // async addApp(name: string, running: boolean, version: string) {
+    //     let result = await this._getCurrData();
+    //     if (result instanceof API.DbTargetError) return result;
+
+    //     let index = this.data.apps.findIndex((i) => i.name == name);
+    //     if (index != -1) return new API.DbTargetError(this.data.hostname, `Application already added ${name}`);
+
+    //     this.data.apps.push({
+    //         name: name,
+    //         running: running,
+    //         version: version,
+    //     });
+
+    //     await this._updateData();
+    //     return true;
+    // }
+
+    async processCreated(app: ProcessInfo.Info, version: string = "unknown") {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        let index = this.data.apps.findIndex((i) => i.name == name);
-        if (index != -1) return new API.DbTargetError(this.data.hostname, `Application already added ${name}`);
-
-        this.data.apps.push({
-            name: name,
-            running: running,
-            version: version,
-        });
+        let index = this.data.apps.findIndex((i) => i.name == app.name);
+        // if app doesn't exist add it.
+        if (index == -1) {
+            this.data.apps.push({
+                name: app.name,
+                pids: [app.pid.toString()],
+                running: true,
+                version: version,
+                instances: 1,
+            });
+        } else {
+            this.data.apps[index].instances++;
+            this.data.apps[index].pids.push(app.pid.toString());
+            if (!this.data.apps[index].running) this.data.apps[index].running = true;
+        }
 
         await this._updateData();
         return true;
     }
-
-    async updateApp(app: string, running: boolean) {
+    async processEnded(app: ProcessInfo.Info) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        let index = this.data.apps.findIndex((i) => i.name == app);
-        if (index == -1) return new API.DbTargetError(this.data.hostname, `Application unable be found ${app}`);
-
-        this.data.apps[index].running = running;
-
-        await this._updateData();
-        return true;
-    }
-    async removeApp(app: string) {
-        let result = await this._getCurrData();
-        if (result instanceof API.DbTargetError) return result;
-
-        removeFromArray(this.data.apps, "name", app);
+        let index = this.data.apps.findIndex((i) => i.name == app.name);
+        if (index == -1) {
+            return new API.DbTargetError(this.data.hostname, `Application Not Found ${app.name}`);
+        } else {
+            this.data.apps[index].instances--;
+            removeValueFromArray(this.data.apps[index].pids, app.pid.toString());
+            if (this.data.apps[index].instances === 0) this.data.apps[index].running = false;
+        }
 
         await this._updateData();
         return true;

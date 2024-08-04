@@ -9,6 +9,8 @@ export interface targetApp {
     name: string;
     running: boolean;
     version: string;
+    pids: string[];
+    instances: number;
 }
 export interface targetInterface {
     ip: string;

@@ -1,7 +1,8 @@
 import Joi from "joi";
+import { ProcessInfo } from "../Beacon";
 export interface Event {
     event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
-    user: string | undefined;
+    user?: string | undefined;
     description: string;
 }
 export type EventTypes = FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
@@ -46,16 +47,28 @@ export namespace ProcessEvent {
         event: Types;
         pid: string;
         name: string;
+        descriptor: ProcessInfo.Info;
     }
     export interface document extends event {
         timestamp: number;
     }
+    const processDescriptorSchema = Joi.object({
+        pid: Joi.number().required(),
+        name: Joi.string().required(),
+        ppid: Joi.number(),
+        cmd: Joi.string(),
+        cpu: Joi.number(),
+        memory: Joi.number(),
+        uid: Joi.number(),
+    });
+
     export const processEventSchema = Joi.object({
-        event: Joi.string().valid(ProcessEvent.Types.ProcessCreated, ProcessEvent.Types.ProcessEnded),
+        event: Joi.string().valid(ProcessEvent.Types.ProcessCreated, ProcessEvent.Types.ProcessEnded).required(),
         user: Joi.string().allow(null),
         description: Joi.string(),
-        pid: Joi.string(),
-        name: Joi.string(),
+        pid: Joi.string().required(),
+        name: Joi.string().required(),
+        descriptor: processDescriptorSchema,
     });
 }
 export namespace RegEditEvent {

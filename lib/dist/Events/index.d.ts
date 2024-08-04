@@ -1,7 +1,8 @@
 import Joi from "joi";
+import { ProcessInfo } from "../Beacon";
 export interface Event {
     event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
-    user: string | undefined;
+    user?: string | undefined;
     description: string;
 }
 export type EventTypes = FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
@@ -32,6 +33,7 @@ export declare namespace ProcessEvent {
         event: Types;
         pid: string;
         name: string;
+        descriptor: ProcessInfo.Info;
     }
     interface document extends event {
         timestamp: number;

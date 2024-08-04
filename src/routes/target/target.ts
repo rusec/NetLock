@@ -295,7 +295,7 @@ router.post(
                 let data = body as ProcessEvent.event;
                 let message = `Process ${data.name} ${data.pid} Created`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.updateApp(data.name, true);
+                result = await target.processCreated(data.descriptor);
                 await target.addLog(log);
                 break;
             }
@@ -303,7 +303,7 @@ router.post(
                 let data = body as ProcessEvent.event;
                 let message = `Process ${data.name} ${data.pid} Ended`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.updateApp(data.name, false);
+                result = await target.processEnded(data.descriptor);
                 await target.addLog(log);
                 break;
             }

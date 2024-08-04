@@ -10,6 +10,8 @@ export interface targetApp {
     name: string;
     running: boolean;
     version: string;
+    pids: string[];
+    instances: number;
 }
 export interface targetInterface {
     ip: string;
@@ -49,6 +51,8 @@ export const targetAppSchema = Joi.object({
     name: Joi.string().required(),
     running: Joi.boolean(),
     version: Joi.string().required(),
+    pids: Joi.array().items(Joi.string()),
+    instances: Joi.number(),
 });
 
 export const targetInterfaceSchema = Joi.object({

@@ -1,4 +1,4 @@
-import { Beacon } from "netlocklib/dist/Beacon";
+import { Beacon, ProcessInfo } from "netlocklib/dist/Beacon";
 import { faker } from "@faker-js/faker";
 import { targetApp, targetInterface, targetUser } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
@@ -15,7 +15,12 @@ describe("Beacon Class", function () {
         loggedIn: true,
         lastLogin: new Date().getTime(),
     };
-    let appToTarget: targetApp = { name: faker.commerce.product(), running: true, version: faker.system.semver() };
+    let appInfo: ProcessInfo.Info = {
+        name: faker.commerce.product(),
+        pid: faker.number.int({ min: 1000, max: 9999 }),
+        ppid: faker.number.int({ min: 1000, max: 9999 }),
+    };
+    let appToTarget: targetApp = { name: appInfo.name, running: true, version: faker.system.semver(), pids: [], instances: 0 };
     beforeAll(async () => {
         beacon = new Beacon(faker.person.firstName(), faker.system.semver(), "https://localhost", {
             interfaces: [
@@ -46,13 +51,13 @@ describe("Beacon Class", function () {
                 userToTarget,
             ],
             apps: [
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
-                { name: faker.commerce.product(), running: true, version: faker.system.semver() },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
+                { name: faker.commerce.product(), running: true, version: faker.system.semver(), pids: [], instances: 0 },
                 appToTarget,
             ],
         });
@@ -164,13 +169,13 @@ describe("Beacon Class", function () {
     });
 
     it("should log process created", async function () {
-        const response = await beacon.processCreated(appToTarget.name, faker.string.alphanumeric(5), { username: faker.internet.userName() });
+        const response = await beacon.processCreated(appInfo);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log process ended", async function () {
-        const response = await beacon.processEnded(appToTarget.name, faker.string.alphanumeric(5), { username: faker.internet.userName() });
+        const response = await beacon.processEnded(appInfo);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
@@ -192,6 +197,7 @@ describe("Beacon Class", function () {
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
+
     afterAll(async () => {
         const response = await beacon.delete();
         console.log(response);

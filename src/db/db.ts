@@ -271,6 +271,9 @@ class DataBase {
 
     async createTarget(data: initTarget) {
         let id = this.makeTargetId(data);
+
+        // Need to standardize input here. some values are needed for the rest of the code but not for initial setup
+
         let target: target = { ...data, id: id };
         databaseEventEmitter.emit("target", target);
 

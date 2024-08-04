@@ -1,30 +1,31 @@
 # NetLock
 
 What is NetLock,
-NetLock is a siem/command control server that is meant to be deployed quickly and without a lot of work from the end user. The goal is to create a C2 server that gives blue team key insights into the landscape by documenting events happening around the network. It does this by using beacons which give event updates to the server using HTTPS. The server also hosts a web
+NetLock is a siem/command control server that is meant to be deployed quickly and without a lot of work from the end user. The goal is to create a C2 server that gives the blue team key insights into the landscape by documenting events happening around the network. It does this by using beacons which give event updates to the server using HTTPS. The server also hosts a web
 
 First time set up.
 
 ```sh
-npm install
+npm install & npm install ./lib
 ```
 
 The app requires an SSL cert to ensure encrypted communication to create an SSL cert use the following command
 Make sure to make the passphrase **pine**
 
 ```sh
-openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365
+openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -sha256 -days 365 -nodes -subj "/CN=localhost" -passout pine
 ```
 
-Make sure the following packages are installed npm might not install them right away
+To build the app in dev mode
 
--   nodemon
--   webpack
+```sh
+npm run build:dev
+```
 
 To start the app in dev mode.
 
 ```sh
-npm run start:dev
+npm run start:dev -- --passphrase=pine
 ```
 
 if on Windows run the following in a different CLI
@@ -63,4 +64,4 @@ Authorization: "MindoverMatter"
 }
 ```
 
-Afterwards go to localhost/register to create a password and then login.
+Afterwards go to https://localhost/register to create a password and then login.

@@ -6,11 +6,10 @@ import readline from "readline";
 import helmet from "helmet";
 import morgan from "morgan";
 import { UserRouter } from "./routes/user/user";
-import { BeaconRegisterRouter } from "./routes/register/register";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import crypto from "crypto";
-import { BeaconEventRouter } from "./routes/target/target";
+import { BeaconRouter } from "./routes/target/target";
 import args from "args";
 import { log } from "./utils/output/debug";
 
@@ -83,8 +82,7 @@ app.get("/", (req: Request, res: Response, next: NextFunction): void => {
         next(error);
     }
 });
-app.use("/api/beacon", BeaconRegisterRouter);
-app.use("/api/beacon", BeaconEventRouter);
+app.use("/api/beacon", BeaconRouter);
 app.use("/api/user", UserRouter);
 app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "../public/index.html"));

@@ -84,9 +84,9 @@ function Home({}: Props) {
 
                         <div className="stats shadow flex-1">
                             <div className="stat">
-                                <div className="stat-title">IPS</div>
+                                <div className="stat-title">IPS (ipv4)</div>
                                 <div className="stat-value">
-                                    <div className="font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
+                                    <div className="bg-neutral p-4 rounded shadow-md w-full relative font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
                                         {info.ips.map((ip) => (
                                             <span
                                                 key={ip.value}

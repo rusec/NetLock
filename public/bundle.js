@@ -47551,9 +47551,9 @@ function Home({}) {
                             react_1.default.createElement("div", { className: "stat-desc" }, "Last updated target"))),
                     react_1.default.createElement("div", { className: "stats shadow flex-1" },
                         react_1.default.createElement("div", { className: "stat" },
-                            react_1.default.createElement("div", { className: "stat-title" }, "IPS"),
+                            react_1.default.createElement("div", { className: "stat-title" }, "IPS (ipv4)"),
                             react_1.default.createElement("div", { className: "stat-value" },
-                                react_1.default.createElement("div", { className: "font-light overflow-y-auto flex flex-wrap gap-4 text-lg" }, info.ips.map((ip) => (react_1.default.createElement("span", { key: ip.value, className: `px-2 py-1 rounded ${ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`, title: ip.state }, ip.value))))),
+                                react_1.default.createElement("div", { className: "bg-neutral p-4 rounded shadow-md w-full relative font-light overflow-y-auto flex flex-wrap gap-4 text-lg" }, info.ips.map((ip) => (react_1.default.createElement("span", { key: ip.value, className: `px-2 py-1 rounded ${ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`, title: ip.state }, ip.value))))),
                             react_1.default.createElement("div", { className: "stat-desc" }, "ip addresses in use"))))))));
 }
 exports["default"] = Home;
@@ -47708,7 +47708,7 @@ const Target_1 = __importDefault(__webpack_require__(/*! ../Target/Target */ "./
 function Targets({}) {
     const { targets, lastTargetUpdatedID, deleteTargetAction } = (0, StreamProvider_1.useStream)();
     const lastUpdatedTarget = targets.find((v) => v.id == lastTargetUpdatedID) || false;
-    return (react_1.default.createElement("div", { className: "p-7 flex flex-wrap gap-3 justify-center" }, targets && targets.map((target) => react_1.default.createElement(Target_1.default, { fillContainer: false, target: target, key: target.id }))));
+    return (react_1.default.createElement("div", { className: "p-7 flex flex-wrap gap-3 justify-center bg-neutral rounded shadow-md w-full relative" }, targets && targets.map((target) => react_1.default.createElement(Target_1.default, { fillContainer: false, target: target, key: target.id }))));
 }
 exports["default"] = Targets;
 

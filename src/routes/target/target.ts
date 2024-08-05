@@ -5,6 +5,7 @@ import { isBeacon } from "../../utils/auth";
 import db from "../../db/db";
 import { Event, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent, eventSchema } from "netlocklib/dist/Events";
 import { API } from "netlocklib/dist/api";
+import { Beacon } from "netlocklib/dist/Beacon";
 let router = Router({
     caseSensitive: true,
 });
@@ -92,6 +93,24 @@ let router = Router({
  *           type: integer
  *           description: The date the target was added.
  */
+
+router.post(
+    "/init",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        let body = req.body as Beacon.initReq;
+        // let { error } = eventSchema.validate(body);
+        // if (error) {
+        //     return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        // }
+    }
+);
+
 /**
  * @swagger
  * /api/beacon/event:
@@ -189,7 +208,7 @@ router.post(
         }
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
-        let target = await db.getTarget(req.client.id);
+        let target = await db.getBeacon(req.client.id);
 
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
         let result: boolean | API.DbTargetError = false;
@@ -261,17 +280,23 @@ router.post(
             }
             case "interfaceIpChange": {
                 let data = body as NetworkEvent.event;
-                let message = `Interface ${data.mac} Ip change ${data.ip}`;
+                if (!data.ip || !data.subnet)
+                    return res.status(400).json({ status: "error", error: "Invalid request for Ip change missing ip or subnet" });
+                let message = `Interface ${data.mac} Ip${data.version} change ${data.ip}`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.updateInterfaceIP(data.mac, data.ip);
+                result =
+                    data.version == "4"
+                        ? await target.updateInterfaceIPv4(data.mac, data.ip, data.subnet)
+                        : await target.updateInterfaceIPv6(data.mac, data.ip, data.subnet);
                 await target.addLog(log);
                 break;
             }
+
             case "interfaceCreated": {
                 let data = body as NetworkEvent.event;
                 let message = `Interface ${data.mac} ${data.ip} Created`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.addInterface(data.mac, data.ip, data.state);
+                result = await target.addInterface(data.descriptor);
                 await target.addLog(log);
                 break;
             }
@@ -303,7 +328,7 @@ router.post(
                 let data = body as ProcessEvent.event;
                 let message = `Process ${data.name} ${data.pid} Ended`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.processEnded(data.descriptor);
+                result = await target.processEnded(data.name);
                 await target.addLog(log);
                 break;
             }
@@ -319,10 +344,27 @@ router.post(
                 let data = body as UserEvent.event;
                 let message = `New User ${data.user} created`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.addUser(data.user, { loggedIn: data.loggedIn });
+                result = await target.addUser(data.user);
                 await target.addLog(log);
                 break;
             }
+            case "userLoggedIn": {
+                let data = body as UserEvent.event;
+                let message = `User logged in ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.updateUser(data.user, data.userLogin);
+                await target.addLog(log);
+                break;
+            }
+            case "userLoggedOut": {
+                let data = body as UserEvent.event;
+                let message = `User logged out ${data.user}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.userLogout(data.user);
+                await target.addLog(log);
+                break;
+            }
+
             case "userDeleted": {
                 let data = body as UserEvent.event;
                 let message = `User ${data.user} deleted`;
@@ -331,6 +373,7 @@ router.post(
                 await target.addLog(log);
                 break;
             }
+            //Not implemented
             case "userGroupChange": {
                 let data = body as UserEvent.event;
                 let message = `User ${data.user} group changed`;
@@ -339,22 +382,7 @@ router.post(
                 result = true;
                 break;
             }
-            case "userLoggedIn": {
-                let data = body as UserEvent.event;
-                let message = `User ${data.user} Logged in`;
-                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.updateUser(data.user, { loggedIn: true, lastLogin: new Date().getTime() });
-                await target.addLog(log);
-                break;
-            }
-            case "userLoggedOut": {
-                let data = body as UserEvent.event;
-                let message = `User ${data.user} Logged in`;
-                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
-                result = await target.updateUser(data.user, { loggedIn: false });
-                await target.addLog(log);
-                break;
-            }
+
             default:
                 return res.status(400).json({ status: "error", error: `Unknown Event ${body.event}` });
                 break;
@@ -366,7 +394,7 @@ router.post(
 router.delete("/", authenticate, isBeacon, async (req: AuthenticatedRequest, res: Response<API.ErrorResponse | API.SuccessResponse>) => {
     if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
-    let target = await db.getTarget(req.client.id);
+    let target = await db.getBeacon(req.client.id);
 
     if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
     let result = await target.delTarget();

@@ -1,38 +1,37 @@
-import { targetApp, targetInterface, targetUser } from "../Target";
 import Api from "../api";
 import { Event } from "../Events";
-import { ProcessDescriptor } from "ps-list-commonjs";
-import os from "os";
-import system from "systeminformation";
+import { Systeminformation } from "systeminformation";
+import * as schemas from "./schemas";
+export { schemas };
 export declare namespace ProcessInfo {
     type ProcessName = string;
-    type Info = ProcessDescriptor;
     namespace Windows {
         const defaultProcess: ProcessName[];
     }
     namespace Linux {
         const defaultProcess: ProcessName[];
     }
-    function getProcess(): Promise<ProcessDescriptor[]>;
 }
 export declare class Beacon {
     token: string | "Not Initialized";
-    hostname: string;
-    os: string;
-    interfaces: targetInterface[];
-    users: targetUser[];
-    apps: targetApp[];
     api: Api;
-    constructor(hostname: string, os: string, serverUrl: string, options?: {
-        interfaces: targetInterface[];
-        users: targetUser[];
-        apps: targetApp[];
-    });
+    hostname: string;
+    constructor(serverUrl: string);
     requestToken(key: string): Promise<void>;
-    addUser(username: string, loggedIn?: boolean): Promise<false | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    delUser(username: string): Promise<false | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    logUser(username: string, loggedIn: boolean): Promise<false | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    groupChange(username: string, group: string): Promise<false | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    static getOS(): Promise<Systeminformation.OsData>;
+    static getCPU(): Promise<Systeminformation.CpuData>;
+    static getMem(): Promise<Systeminformation.MemData>;
+    static getProcesses(): Promise<Systeminformation.ProcessesProcessData[]>;
+    static getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]>;
+    static getUsers(): Promise<Systeminformation.UserData[]>;
+    addUser(username: string, loggedIn?: boolean): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    delUser(username: string): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    /**
+     * User is logged if they are active on the system,
+     * once user is no longer seen on the system, they are assumed to be logged out
+     */
+    loginUser(userLogin: Beacon.userLogin, loggedIn: boolean): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    groupChange(username: string, group: string): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     fileAccessed(file: string, options: {
         username: string | undefined;
         permissions: string;
@@ -53,26 +52,23 @@ export declare class Beacon {
         permissions: string;
         path: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    interfaceUp(mac: string, ip: string, options?: {
+    interfaceUp(descriptor: Beacon.networkInterface, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    interfaceDown(mac: string, ip: string, options?: {
+    interfaceDown(descriptor: Beacon.networkInterface, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    interfaceCreated(mac: string, ip: string, state: "up" | "down", options?: {
+    interfaceCreated(descriptor: Beacon.networkInterface, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    interfaceDeleted(mac: string, options?: {
+    interfaceDeleted(descriptor: Beacon.networkInterface, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    interfaceIpChange(mac: string, ip: string, state: "up" | "down", options?: {
+    interfaceIpChange(descriptor: Beacon.networkInterface, version: "4" | "6", options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    processCreated(process: ProcessInfo.Info): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    processEnded(process: ProcessInfo.Info): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    getProcesses(): Promise<ProcessDescriptor[]>;
-    getNetworkInterfaces(): NodeJS.Dict<os.NetworkInterfaceInfo[]>;
-    getUsers(): Promise<system.Systeminformation.UserData[]>;
+    processCreated(process: Beacon.applicationSpawn): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    processEnded(process: Beacon.applicationSpawn): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     regEdit(key: string, value: string, options?: {
         username: string;
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
@@ -84,5 +80,90 @@ export declare class Beacon {
     }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     _sendEvent(event: Event): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     delete(): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+}
+export declare namespace Beacon {
+    interface Init {
+        os: {
+            platform: string;
+            distro: string;
+            kernel: string;
+            arch: string;
+            release: string;
+            codename: string;
+            fqdn: string;
+            hypervisor?: boolean;
+            uefi?: boolean | null;
+            logofile?: string;
+            build?: string;
+            servicepack?: string;
+        };
+        hardware: {
+            cpu: string;
+            mem: string;
+        };
+        hostname: string;
+    }
+    interface networkInterface {
+        iface: string;
+        ifaceName: string;
+        default: boolean;
+        ip4: string;
+        ip4subnet: string;
+        ip6: string;
+        ip6subnet: string;
+        mac: string;
+        state: "up" | "down";
+        type?: string;
+        speed?: string;
+        virtual?: string;
+        dhcp?: string;
+    }
+    interface userLogin {
+        name: string;
+        tty?: string;
+        date: number;
+        ip?: string;
+        command?: string;
+    }
+    interface user {
+        name: string;
+        loggedIn: boolean;
+        lastUpdate: number;
+        logins: userLogin[];
+    }
+    interface applicationSpawn {
+        pid: number;
+        parentPid?: number;
+        name: string;
+        cpu?: number;
+        priority?: number;
+        started?: string;
+        state?: string;
+        tty?: string;
+        user?: string;
+        command?: string;
+        params?: string;
+        path?: string;
+    }
+    interface application {
+        name: string;
+        running: boolean;
+        spawns: applicationSpawn[];
+    }
+    interface document extends Init {
+        id: string;
+        dateAdded: number;
+        lastPing: number;
+    }
+    interface initReq {
+        apps: application[];
+        users: user[];
+        networkInterfaces: networkInterface[];
+    }
+    interface Data extends document {
+        apps: application[];
+        users: user[];
+        networkInterfaces: networkInterface[];
+    }
 }
 //# sourceMappingURL=index.d.ts.map

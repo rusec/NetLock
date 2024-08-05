@@ -1,5 +1,5 @@
 import Joi from "joi";
-import { ProcessInfo } from "../Beacon";
+import { Beacon } from "../Beacon";
 export interface Event {
     event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
     user?: string | undefined;
@@ -33,7 +33,7 @@ export declare namespace ProcessEvent {
         event: Types;
         pid: string;
         name: string;
-        descriptor: ProcessInfo.Info;
+        descriptor: Beacon.applicationSpawn;
     }
     interface document extends event {
         timestamp: number;
@@ -81,7 +81,10 @@ export declare namespace NetworkEvent {
         event: Types;
         mac: string;
         state: "up" | "down";
-        ip: string;
+        ip?: string;
+        version?: "4" | "6";
+        subnet?: string;
+        descriptor: Beacon.networkInterface;
     }
     interface document extends event {
         timestamp: number;
@@ -100,6 +103,7 @@ export declare namespace UserEvent {
         event: Types;
         loggedIn: boolean;
         user: string;
+        userLogin: Beacon.userLogin;
     }
     interface document extends event {
         timestamp: number;

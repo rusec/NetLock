@@ -87,7 +87,7 @@ function Logs({}: Props) {
                             </div>
                         </div>
                     </div>
-                    <div className="overflow-x-auto overflow-y-auto max-h-lvh">
+                    <div className="overflow-y-auto max-h-[30rem]">
                         <table className="table w-full table-pin-rows">
                             <thead>
                                 <tr className="bg-base-200 text-white">

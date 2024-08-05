@@ -1,6 +1,6 @@
-import { target, targetRequest } from "../Target";
 import { Event, LogEvent } from "../Events";
 import { ValidationErrorItem } from "joi";
+import { Beacon } from "../Beacon";
 export declare namespace API {
     class DbTargetError extends Error {
         hostname: string;
@@ -26,7 +26,7 @@ export declare namespace API {
         message: string;
     }
     interface TargetsAndLogsResponse {
-        targets: target[];
+        targets: Beacon.Data[];
         logs: LogEvent.Log[];
     }
     interface StatusResponse {
@@ -41,7 +41,7 @@ declare class Api {
     constructor(url: string);
     endpoint(endpoint: string): string;
     deleteTarget(token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
-    requestToken(key: string, info: targetRequest): Promise<string>;
+    requestToken(key: string, info: Beacon.Init): Promise<string>;
     postEvent(event: Event, token: string): Promise<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>;
 }
 export default Api;

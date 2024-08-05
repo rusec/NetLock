@@ -2,6 +2,7 @@ import axios from "axios";
 import { target, targetRequest } from "../Target";
 import { Event, LogEvent } from "../Events";
 import { ValidationErrorItem } from "joi";
+import { Beacon } from "../Beacon";
 
 export namespace API {
     export class DbTargetError extends Error {
@@ -37,7 +38,7 @@ export namespace API {
         message: string;
     }
     export interface TargetsAndLogsResponse {
-        targets: target[];
+        targets: Beacon.Data[];
         logs: LogEvent.Log[];
     }
     export interface StatusResponse {
@@ -66,11 +67,11 @@ class Api {
             return result.data;
         } catch (error) {
             let e = error as any;
-            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data)}`);
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
             throw e;
         }
     }
-    async requestToken(key: string, info: targetRequest) {
+    async requestToken(key: string, info: Beacon.Init) {
         try {
             let { data } = await axios.post<API.TokenResponse>(this.endpoint("/api/beacon/register"), info, {
                 headers: {
@@ -81,7 +82,7 @@ class Api {
             return data.token;
         } catch (error) {
             let e = error as any;
-            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data)}`);
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
             throw e;
         }
     }
@@ -99,7 +100,7 @@ class Api {
             return result.data;
         } catch (error) {
             let e = error as any;
-            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data)}`);
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
             throw e;
         }
     }

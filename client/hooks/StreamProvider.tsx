@@ -3,9 +3,10 @@ import { useAuth } from "./AuthProvider";
 import { target } from "netlocklib/dist/Target";
 import { EventTypes, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent } from "netlocklib/dist/Events";
 import { alert } from "../components/models/Alert";
+import { Beacon } from "netlocklib/dist/Beacon";
 
 interface StreamContext {
-    targets: target[];
+    targets: Beacon.Data[];
     lastTargetUpdatedID: string;
     deleteTargetAction: (data: string) => Promise<void>;
     getTargetsByIdAndName: () => {
@@ -44,7 +45,7 @@ type Props = {
 // Create a Provider component
 export const StreamProvider = ({ setAlert, children }: Props) => {
     const { token } = useAuth(); // get the token from useAuth
-    const [targets, setTargets] = useState<target[]>([]);
+    const [targets, setTargets] = useState<Beacon.Data[]>([]);
     const [lastTargetUpdatedID, setLastTargetUpdatedID] = useState<string>("");
     const [logs, setLogs] = useState<LogEvent.Log[]>([]);
     const [lastLogUpdatedID, setLastLogUpdatedID] = useState<LogEvent.Log>();

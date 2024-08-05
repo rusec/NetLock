@@ -1,5 +1,7 @@
 import Joi from "joi";
-import { ProcessInfo } from "../Beacon";
+import { Beacon } from "../Beacon";
+import { applicationSpawnSchema, networkInterfaceSchema, userLoginSchema } from "../Beacon/schemas";
+
 export interface Event {
     event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
     user?: string | undefined;
@@ -47,20 +49,11 @@ export namespace ProcessEvent {
         event: Types;
         pid: string;
         name: string;
-        descriptor: ProcessInfo.Info;
+        descriptor: Beacon.applicationSpawn;
     }
     export interface document extends event {
         timestamp: number;
     }
-    const processDescriptorSchema = Joi.object({
-        pid: Joi.number().required(),
-        name: Joi.string().required(),
-        ppid: Joi.number(),
-        cmd: Joi.string(),
-        cpu: Joi.number(),
-        memory: Joi.number(),
-        uid: Joi.number(),
-    });
 
     export const processEventSchema = Joi.object({
         event: Joi.string().valid(ProcessEvent.Types.ProcessCreated, ProcessEvent.Types.ProcessEnded).required(),
@@ -68,7 +61,7 @@ export namespace ProcessEvent {
         description: Joi.string(),
         pid: Joi.string().required(),
         name: Joi.string().required(),
-        descriptor: processDescriptorSchema,
+        descriptor: applicationSpawnSchema,
     });
 }
 export namespace RegEditEvent {
@@ -120,11 +113,15 @@ export namespace NetworkEvent {
         InterfaceDeleted = "interfaceDeleted",
         InterfaceIpChange = "interfaceIpChange",
     }
+
     export interface event extends Event {
         event: Types;
         mac: string;
         state: "up" | "down";
-        ip: string;
+        ip?: string;
+        version?: "4" | "6";
+        subnet?: string;
+        descriptor: Beacon.networkInterface;
     }
     export interface document extends event {
         timestamp: number;
@@ -140,8 +137,11 @@ export namespace NetworkEvent {
         user: Joi.string().allow(null),
         description: Joi.string(),
         mac: Joi.string(),
+        version: Joi.string().valid("4", "6"),
         state: Joi.string().valid("up", "down"),
-        ip: Joi.string(),
+        ip: Joi.string().ip(),
+        subnet: Joi.string(),
+        descriptor: networkInterfaceSchema,
     });
 }
 export namespace UserEvent {
@@ -156,10 +156,12 @@ export namespace UserEvent {
         event: Types;
         loggedIn: boolean;
         user: string;
+        userLogin: Beacon.userLogin;
     }
     export interface document extends event {
         timestamp: number;
     }
+
     export const userEventSchema = Joi.object({
         event: Joi.string().valid(
             UserEvent.Types.UserLoggedIn,
@@ -171,6 +173,7 @@ export namespace UserEvent {
         user: Joi.string(),
         description: Joi.string(),
         loggedIn: Joi.boolean(),
+        userLogin: userLoginSchema,
     });
 }
 export namespace LogEvent {

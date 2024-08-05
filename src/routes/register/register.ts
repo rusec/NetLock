@@ -5,6 +5,7 @@ import { beaconToken } from "../../utils/types/token";
 import db from "../../db/db";
 import { createToken } from "../../utils/token";
 import { API } from "netlocklib/dist/api";
+import { Beacon, schemas } from "netlocklib/dist/Beacon";
 let router = Router({
     caseSensitive: true,
 });
@@ -90,27 +91,22 @@ router.post(
     "/register",
     isBeacon,
     async (req: Request, res: Response<API.ErrorResponse | API.ValidationError | API.TokenResponse>, next: NextFunction) => {
-        let body = req.body as targetRequest;
-        const { error } = targetRequestSchema.validate(body);
+        let body = req.body as Beacon.Init;
+        const { error } = schemas.initSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
 
-        let target: initTarget = {
-            active: true,
-            interfaces: body.interfaces,
+        let target: Beacon.Init = {
             hostname: body.hostname,
-            apps: body.apps,
-            lastPing: new Date().getTime(),
             os: body.os,
-            users: body.users,
-            dateAdded: new Date().getTime(),
+            hardware: body.hardware,
         };
         let checkID = await db.makeTargetId(target);
-        let checkForAlreadyRequested = await db.getTarget(checkID);
+        let checkForAlreadyRequested = await db.getBeacon(checkID);
         if (checkForAlreadyRequested) return res.status(400).json({ status: "error", error: "Beacon already registered" });
         let id = await db.createTarget(target);
-        let checkForTarget = await db.getTarget(id);
+        let checkForTarget = await db.getBeacon(id);
         if (!id || !checkForTarget) return res.status(400).json({ status: "error", error: "Unable to register beacon" });
         let beaconTok: beaconToken = {
             id: id,

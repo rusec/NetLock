@@ -8,6 +8,7 @@ import { rateLimit } from "express-rate-limit";
 import { API } from "netlocklib/dist/api";
 import { target } from "netlocklib/dist/Target";
 import { LogEvent } from "netlocklib/dist/Events";
+import { Beacon } from "netlocklib/dist/Beacon";
 let router = Router({
     caseSensitive: true,
 });
@@ -238,11 +239,13 @@ router.get("/data/all", authenticate, validateUser, async (req: Request, res: Re
  *       401:
  *         description: Unauthorized.
  */
-router.get("/targets/:target", authenticate, validateUser, async (req: Request, res: Response<API.ErrorResponse | target>) => {
+router.get("/targets/:target", authenticate, validateUser, async (req: Request, res: Response<API.ErrorResponse | Beacon.Data>) => {
     if (!req.params.target) return res.status(400).json({ status: "error", error: "Unable to find target" });
-    let targetData = await db.getTarget(req.params.target);
-    if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });
-    return res.status(200).json(targetData.data);
+    let target = await db.getBeacon(req.params.target);
+    if (!target) return res.status(400).json({ status: "error", error: "Unable to find target" });
+    let data = await target.getData();
+
+    return res.status(200).json(data);
 });
 /**
  * @swagger
@@ -270,7 +273,7 @@ router.get("/targets/:target", authenticate, validateUser, async (req: Request, 
  */
 router.delete("/targets/:target", authenticate, validateUser, async (req: Request, res: Response<API.SuccessResponse | API.ErrorResponse>) => {
     if (!req.params.target) return res.status(400).json({ status: "error", error: "No target selected" });
-    let targetData = await db.getTarget(req.params.target);
+    let targetData = await db.getBeacon(req.params.target);
     if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });
     await targetData.delTarget();
     return res.status(200).json({ status: "success", message: "target deleted" });
@@ -279,7 +282,7 @@ router.delete("/targets/:target", authenticate, validateUser, async (req: Reques
 // gets logs for target
 router.get("/logs/:target", authenticate, validateUser, async (req: Request, res: Response<API.ErrorResponse | LogEvent.Log[]>) => {
     if (!req.params.target) return res.status(400).json({ status: "error", error: "No target selected" });
-    let targetData = await db.getTarget(req.params.target);
+    let targetData = await db.getBeacon(req.params.target);
     if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });
     let logs = await targetData.getLogs();
     return res.status(200).json(logs);

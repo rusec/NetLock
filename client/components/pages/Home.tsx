@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { target } from "netlocklib/dist/Target";
 import { useStream } from "../../hooks/StreamProvider";
 import Target from "../Target/Target";
+import { Beacon } from "netlocklib/dist/Beacon";
 
 type Props = {
     // targets: target[];
@@ -14,7 +15,7 @@ interface HomeInfo {
     apps: number;
     ips: { value: string; state: "up" | "down" }[];
 
-    lastUpdated: target | false;
+    lastUpdated: Beacon.Data | false;
 }
 
 function Home({}: Props) {
@@ -28,8 +29,8 @@ function Home({}: Props) {
         let numberOfApps = targets.reduce((p, v) => p + v.apps.length, 0);
 
         let ips = targets.flatMap((v) =>
-            v.interfaces.map((i) => {
-                return { value: i.ip + " " + i.mac, state: i.state };
+            v.networkInterfaces.map((i) => {
+                return { value: i.ip4 + " " + i.mac, state: i.state };
             })
         );
         let result: HomeInfo = {
@@ -84,18 +85,20 @@ function Home({}: Props) {
                         <div className="stats shadow flex-1">
                             <div className="stat">
                                 <div className="stat-title">IPS</div>
-                                <div className="stat-value font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
-                                    {info.ips.map((ip) => (
-                                        <span
-                                            key={ip.value}
-                                            className={`px-2 py-1 rounded ${
-                                                ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"
-                                            }`}
-                                            title={ip.state}
-                                        >
-                                            {ip.value}
-                                        </span>
-                                    ))}
+                                <div className="stat-value">
+                                    <div className="font-light overflow-y-auto flex flex-wrap gap-4 text-lg">
+                                        {info.ips.map((ip) => (
+                                            <span
+                                                key={ip.value}
+                                                className={`px-2 py-1 rounded ${
+                                                    ip.state == "up" ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"
+                                                }`}
+                                                title={ip.state}
+                                            >
+                                                {ip.value}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                                 <div className="stat-desc">ip addresses in use</div>
                             </div>

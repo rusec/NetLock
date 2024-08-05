@@ -8,11 +8,11 @@ import { removeFromArray, removeValueFromArray } from "./utils/utils";
 import { LogEvent } from "netlocklib/dist/Events";
 import { initTarget, target } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
-import { ProcessInfo } from "netlocklib/dist/Beacon";
+import { Beacon } from "netlocklib/dist/Beacon";
 
 type dbEventTypes = {
     logs: [event: LogEvent.Log];
-    target: [event: target];
+    target: [event: Beacon.Data];
 };
 
 const databaseEventEmitter: EventEmitter<dbEventTypes> = new EventEmitter({
@@ -23,32 +23,81 @@ const databaseEventEmitter: EventEmitter<dbEventTypes> = new EventEmitter({
 
 // It might create race conditions
 // Need to add create and delete for interfaces apps and users
-class TargetData {
-    data: target;
-    db: AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>;
+class BeaconData {
+    data: Beacon.document;
+    db: AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>;
     id: string;
-    logKey: string;
-    logs: AbstractSublevel<
-        AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>,
+    _logKey: string;
+    _logs: AbstractSublevel<
+        AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
         string,
         LogEvent.Log
     >;
+    _networkKey: string;
+    _userKey: string;
+    _applicationKey: string;
+    _network: AbstractSublevel<
+        AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
+        string | Buffer | Uint8Array,
+        string,
+        Beacon.networkInterface
+    >;
+    _applications: AbstractSublevel<
+        AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
+        string | Buffer | Uint8Array,
+        string,
+        Beacon.application
+    >;
+    _users: AbstractSublevel<
+        AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
+        string | Buffer | Uint8Array,
+        string,
+        Beacon.user
+    >;
 
-    constructor(data: target, id: string, db: AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>) {
+    constructor(
+        data: Beacon.document,
+        id: string,
+        db: AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>
+    ) {
         this.data = data;
         this.db = db;
         this.id = id;
-        this.logKey = `${id}_logs`;
-        this.logs = this.db.sublevel(this.logKey, { valueEncoding: "json" });
+        this._logKey = `${id}_logs`;
+        this._networkKey = `${id}_interfaces`;
+        this._userKey = `${id}_user`;
+        this._applicationKey = `${id}_application`;
+        this._logs = this.db.sublevel(this._logKey, { valueEncoding: "json" });
+        this._network = this.db.sublevel(this._networkKey, { valueEncoding: "json" });
+        this._applications = this.db.sublevel(this._applicationKey, { valueEncoding: "json" });
+        this._users = this.db.sublevel(this._userKey, { valueEncoding: "json" });
     }
     async updateLastPing() {
         this.data.lastPing = new Date().getDate();
         await this._updateData();
     }
+    async getData() {
+        let apps: Beacon.application[] = [];
+        for await (const app of this._applications.values()) {
+            apps.push(app);
+        }
+        let networkInterfaces: Beacon.networkInterface[] = [];
+        for await (const iface of this._network.values()) {
+            networkInterfaces.push(iface);
+        }
+        let users: Beacon.user[] = [];
+        for await (const user of this._users.values()) {
+            users.push(user);
+        }
+        let data: Beacon.Data = { ...this.data, apps, networkInterfaces, users };
+        return data;
+    }
+
     async _updateData() {
-        databaseEventEmitter.emit("target", this.data);
-        await this.db.put(this.id, this.data).catch(() => undefined);
+        let data = await this.getData();
+        if (data instanceof API.DbTargetError) return;
+        databaseEventEmitter.emit("target", data);
     }
 
     async _getCurrData() {
@@ -61,132 +110,155 @@ class TargetData {
     async updateInterfaceStat(mac: string, state: "down" | "up") {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
-        let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index == -1) return new API.DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
 
-        this.data.interfaces[index].state = state;
-        await this._updateData();
+        let iface = await this._network.get(mac).catch(() => undefined);
+        if (!iface) return new API.DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
+
+        iface.state = state;
+        await this._network.put(mac, iface).catch(() => undefined);
+        this._updateData();
         return true;
     }
-    async addInterface(mac: string, ip: string, state: "down" | "up") {
+    async addInterface(ifaceRequest: Beacon.networkInterface) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
-        let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index != -1) return new API.DbTargetError(this.data.hostname, `Interface already added`);
-        this.data.interfaces.push({
-            ip: ip,
-            mac: mac,
-            state: state,
-        });
-        await this._updateData();
+
+        let iface = await this._network.get(ifaceRequest.mac).catch(() => undefined);
+        if (iface) return new API.DbTargetError(this.data.hostname, `Interface already added`);
+
+        await this._network.put(ifaceRequest.mac, ifaceRequest).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
-    async updateInterfaceIP(mac: string, ip: string) {
+    async updateInterfaceIPv4(mac: string, ip: string, subnet: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
-        let index = this.data.interfaces.findIndex((i) => i.mac == mac);
-        if (index == -1) return new API.DbTargetError(this.data.hostname, `Interface not found ${mac}`);
+        let iface = await this._network.get(mac).catch(() => undefined);
+        if (!iface) return new API.DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
 
-        this.data.interfaces[index].ip = ip;
-        await this._updateData();
+        iface.ip4 = ip;
+        iface.ip4subnet = subnet;
+
+        await this._network.put(iface.mac, iface).catch(() => undefined);
+        this._updateData();
+
+        return true;
+    }
+    async updateInterfaceIPv6(mac: string, ip: string, subnet: string) {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+        let iface = await this._network.get(mac).catch(() => undefined);
+        if (!iface) return new API.DbTargetError(this.data.hostname, `Unable to find interface ${mac}`);
+
+        iface.ip6 = ip;
+        iface.ip6subnet = subnet;
+
+        await this._network.put(iface.mac, iface).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
     async removeInterface(mac: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        removeFromArray(this.data.interfaces, "mac", mac);
-        await this._updateData();
+        await this._network.del(mac).catch(() => undefined);
+
         return true;
     }
-    async addUser(
-        username: string,
-        options: {
-            loggedIn: boolean;
-        }
-    ) {
+    async addUser(username: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
+        let user = await this._users.get(username).catch(() => undefined);
+        if (user) return new API.DbTargetError(this.data.hostname, `User ${username} already exists`);
 
-        let index = this.data.users.findIndex((i) => i.name == username);
-        if (index != -1) return new API.DbTargetError(this.data.hostname, `User already added ${username}`);
-
-        this.data.users.push({
-            lastLogin: options.loggedIn ? new Date().getTime() : new Date(0).getTime(),
+        let userDoc: Beacon.user = {
+            logins: [],
+            loggedIn: false,
             lastUpdate: new Date().getTime(),
-            loggedIn: options.loggedIn,
             name: username,
-        });
-        await this._updateData();
+        };
+        await this._users.put(username, userDoc).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
     async removeUser(username: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
+        let user = await this._users.get(username).catch(() => undefined);
+        if (!user) return new API.DbTargetError(this.data.hostname, `User ${username} doesn't exist`);
 
-        removeFromArray(this.data.users, "name", username);
-        await this._updateData();
+        await this._users.del(username).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
-    async updateUser(
-        username: string,
-        options: {
-            loggedIn?: boolean;
-            lastLogin?: number;
-        }
-    ) {
+    async updateUser(username: string, logInRequest: Beacon.userLogin) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        let index = this.data.users.findIndex((i) => i.name == username);
-        if (index == -1) return new API.DbTargetError(this.data.hostname, `Unable to find user ${username}`);
+        let user = await this._users.get(username).catch(() => undefined);
+        if (!user) return new API.DbTargetError(this.data.hostname, `User ${username} doesn't exist`);
 
-        if (typeof options.loggedIn == "boolean") {
-            this.data.users[index].loggedIn = options.loggedIn;
-        }
-        if (options.lastLogin) this.data.users[index].lastUpdate = new Date(options.lastLogin).getTime();
-        this.data.users[index].lastUpdate = new Date().getTime();
-        await this._updateData();
+        user.logins.push(logInRequest);
+        user.lastUpdate = new Date().getTime();
+        user.loggedIn = true;
+
+        await this._users.put(username, user).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
-
-    async processCreated(app: ProcessInfo.Info, version: string = "unknown") {
+    async userLogout(username: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        let index = this.data.apps.findIndex((i) => i.name == app.name);
+        let user = await this._users.get(username).catch(() => undefined);
+        if (!user) return new API.DbTargetError(this.data.hostname, `User ${username} doesn't exist`);
+
+        user.lastUpdate = new Date().getTime();
+        user.loggedIn = false;
+
+        await this._users.put(username, user).catch(() => undefined);
+        this._updateData();
+
+        return true;
+    }
+    async processCreated(app: Beacon.applicationSpawn, version: string = "unknown") {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+
+        let appDoc = await this._applications.get(app.name).catch(() => undefined);
         // if app doesn't exist add it.
-        if (index == -1) {
-            this.data.apps.push({
+        if (!appDoc) {
+            appDoc = {
                 name: app.name,
-                pids: [app.pid.toString()],
                 running: true,
-                version: version,
-                instances: 1,
-            });
+                spawns: [app],
+            };
         } else {
-            this.data.apps[index].instances++;
-            this.data.apps[index].pids.push(app.pid.toString());
-            if (!this.data.apps[index].running) this.data.apps[index].running = true;
+            appDoc.spawns.push(app);
         }
+        await this._applications.put(app.name, appDoc).catch(() => undefined);
 
-        await this._updateData();
+        this._updateData();
         return true;
     }
-    async processEnded(app: ProcessInfo.Info) {
+    async processEnded(name: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
 
-        let index = this.data.apps.findIndex((i) => i.name == app.name);
-        if (index == -1) {
-            return new API.DbTargetError(this.data.hostname, `Application Not Found ${app.name}`);
-        } else {
-            this.data.apps[index].instances--;
-            removeValueFromArray(this.data.apps[index].pids, app.pid.toString());
-            if (this.data.apps[index].instances === 0) this.data.apps[index].running = false;
+        let appDoc = await this._applications.get(name).catch(() => undefined);
+        if (!appDoc) {
+            return new API.DbTargetError(this.data.hostname, `Application Not Found ${name}`);
         }
+        appDoc.running = false;
 
-        await this._updateData();
+        await this._applications.put(name, appDoc).catch(() => undefined);
+        this._updateData();
+
         return true;
     }
     async addLog(event: LogEvent.BeaconEvent) {
@@ -194,28 +266,32 @@ class TargetData {
         let eventKey = `log_${new Date().toISOString()}_${this.data.hostname}_${event.event}_${uuid}`;
         let e: LogEvent.Log = { ...event, targetId: this.id, id: uuid.toString(), timestamp: new Date().getTime() };
         databaseEventEmitter.emit("logs", e);
-        this.logs.put(eventKey, e);
+        this._logs.put(eventKey, e);
         return true;
     }
     async getLogs() {
         let logs = [];
-        for await (const key of this.logs.keys()) {
-            let m = await this.logs.get(key).catch(() => "");
+        for await (const key of this._logs.keys()) {
+            let m = await this._logs.get(key).catch(() => "");
             if (typeof m === "string") continue;
             //might need to add a program log here just incase
             logs.push(m);
         }
+
         return logs;
     }
     async delTarget() {
-        await this.logs.clear();
+        await this._network.clear();
+        await this._applications.clear();
+        await this._users.clear();
+        await this._logs.clear();
         await this.db.del(this.id).catch(() => undefined);
         return true;
     }
 }
 class DataBase {
     db: Level<string, any>;
-    targets: AbstractSublevel<Level<string, target>, string | Buffer | Uint8Array, string, target>;
+    targets: AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>;
 
     constructor() {
         this.db = new Level("./db", {
@@ -263,33 +339,33 @@ class DataBase {
         return true;
     }
 
-    makeTargetId(data: initTarget) {
+    makeTargetId(data: Beacon.Init) {
         let sha = crypto.createHash("sha256");
         let hash = sha.update(data.hostname);
         return hash.digest().toString("hex");
     }
 
-    async createTarget(data: initTarget) {
+    async createTarget(data: Beacon.Init) {
         let id = this.makeTargetId(data);
 
         // Need to standardize input here. some values are needed for the rest of the code but not for initial setup
 
-        let target: target = { ...data, id: id };
-        databaseEventEmitter.emit("target", target);
+        let target: Beacon.document = { ...data, id: id, dateAdded: new Date().getTime(), lastPing: new Date().getTime() };
+        databaseEventEmitter.emit("target", { ...target, apps: [], networkInterfaces: [], users: [] });
 
         await this.targets.put(id, target).catch((err) => console.log(err));
         return id;
     }
-    async getTarget(id: string) {
+    async getBeacon(id: string) {
         let userData = await this.targets.get(id).catch(() => undefined);
         if (!userData) return false;
-        return new TargetData(userData, id, this.targets);
+        return new BeaconData(userData, id, this.targets);
     }
     async getAllLogs() {
         let mainLogs = [];
         for await (const [key, value] of this.targets.iterator()) {
             if (key.includes("_logs")) continue;
-            let target = new TargetData(value, value.id, this.targets);
+            let target = new BeaconData(value, value.id, this.targets);
             let logs = await target.getLogs();
             mainLogs.push(logs);
         }
@@ -297,11 +373,15 @@ class DataBase {
         return flatLogs.sort((a: LogEvent.Log, b: LogEvent.Log) => a.timestamp - b.timestamp);
     }
     async getAllTargets() {
-        let data: target[] = [];
+        let data: Beacon.Data[] = [];
         for await (const [key, value] of this.targets.iterator()) {
             // Figure out a better way to store these because levelDb returns sublevel keys too
-            if (key.includes("_logs")) continue;
-            data.push(value);
+            if (key.includes("_logs") || key.includes("_application") || key.includes("_user") || key.includes("_interfaces")) continue;
+
+            let beacon = new BeaconData(value, key, this.targets);
+            let d = await beacon.getData();
+            if (d instanceof API.DbTargetError) continue;
+            data.push(d);
         }
         return data;
     }

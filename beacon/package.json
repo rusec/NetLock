@@ -1,0 +1,19 @@
+{
+  "name": "netlock-beacon",
+  "version": "1.0.0",
+  "description": "netlock beacon",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "netlock"
+  ],
+  "author": "Mohamad Khawam",
+  "license": "ISC",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "netlocklib": "file:../lib",
+    "systeminformation": "^5.23.3"
+  }
+}

@@ -39,11 +39,12 @@ export const useStream = () => {
 };
 type Props = {
     setAlert: Dispatch<SetStateAction<alert | false>>;
+    setLoading: Dispatch<SetStateAction<boolean>>;
     children: any;
 };
 
 // Create a Provider component
-export const StreamProvider = ({ setAlert, children }: Props) => {
+export const StreamProvider = ({ setAlert, setLoading, children }: Props) => {
     const { token } = useAuth(); // get the token from useAuth
     const [targets, setTargets] = useState<Beacon.Data[]>([]);
     const [lastTargetUpdatedID, setLastTargetUpdatedID] = useState<string>("");
@@ -98,6 +99,7 @@ export const StreamProvider = ({ setAlert, children }: Props) => {
     useEffect(() => {
         const source = new EventSource("/api/user/stream" + `?token=${token}`);
         const init = async () => {
+            setLoading(true);
             const results = await fetch("/api/user/data/all", {
                 headers: {
                     authorization: token,
@@ -107,6 +109,7 @@ export const StreamProvider = ({ setAlert, children }: Props) => {
             let { targets, logs } = await results.json();
             setTargets(targets);
             setLogs(logs);
+            setLoading(false);
         };
 
         source.addEventListener("targets", (event) => {

@@ -1,4 +1,4 @@
-import { NextFunction, Response, Router, Request } from "express";
+import express, { NextFunction, Response, Router, Request } from "express";
 import { AuthenticatedRequest, beaconToken } from "../../utils/types/token";
 import { authenticate, createToken } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
@@ -6,6 +6,7 @@ import db from "../../db/db";
 import { Event, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent, eventSchema } from "netlocklib/dist/Events";
 import { API } from "netlocklib/dist/api";
 import { Beacon, schemas } from "netlocklib/dist/Beacon";
+import { applicationSchema, initRequestSchema, networkInterfaceSchema } from "netlocklib/dist/Beacon/schemas";
 let router = Router({
     caseSensitive: true,
 });
@@ -205,7 +206,78 @@ router.post(
  *           type: integer
  *           description: The date the target was added.
  */
+router.post(
+    "/add/app",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        let body = req.body as Beacon.application;
+        let { error } = applicationSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        let target = await db.getBeacon(req.client.id);
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
+        await target.addProcess(body);
+
+        return res.status(200).json({ status: "success", message: "Beacon Added Application" });
+    }
+);
+router.post(
+    "/add/interface",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        let body = req.body as Beacon.networkInterface;
+        let { error } = networkInterfaceSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
+
+        let target = await db.getBeacon(req.client.id);
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
+        await target.addInterface(body);
+
+        return res.status(200).json({ status: "success", message: "Beacon Added Network Interface" });
+    }
+);
+router.post(
+    "/add/user",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        let body = req.body as Beacon.user;
+        let { error } = networkInterfaceSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
+
+        let target = await db.getBeacon(req.client.id);
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
+        await target.addUser(body.name, body.loggedIn);
+
+        return res.status(200).json({ status: "success", message: "Beacon Added User" });
+    }
+);
 router.post(
     "/init",
     authenticate,
@@ -216,10 +288,30 @@ router.post(
         next: NextFunction
     ) => {
         let body = req.body as Beacon.initReq;
-        // let { error } = eventSchema.validate(body);
-        // if (error) {
-        //     return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
-        // }
+        let { error } = initRequestSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
+
+        let target = await db.getBeacon(req.client.id);
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
+        for (let i = 0; i < body.networkInterfaces.length; i++) {
+            const iface = body.networkInterfaces[i];
+            await target.addInterface(iface);
+        }
+
+        for (let i = 0; i < body.apps.length; i++) {
+            const apps = body.apps[i];
+            await target.addProcess(apps);
+        }
+
+        for (let i = 0; i < body.users.length; i++) {
+            const user = body.users[i];
+            await target.addUser(user.name, user.loggedIn);
+        }
+        return res.status(200).json({ status: "success", message: "Beacon init complete" });
     }
 );
 

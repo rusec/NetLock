@@ -2,7 +2,6 @@ import Api from "../api";
 import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
 import os from "os";
 import system, { Systeminformation } from "systeminformation";
-import Joi from "joi";
 import * as schemas from "./schemas";
 export { schemas };
 export namespace ProcessInfo {
@@ -42,35 +41,59 @@ export class Beacon {
         let result = await this.api.requestToken(key, data);
         this.token = result;
     }
-    static async getOS() {
+    static async getOS(): Promise<Systeminformation.OsData> {
         return new Promise<Systeminformation.OsData>((resolve) => {
             system.osInfo((d) => resolve(d));
         });
     }
-    static getCPU() {
+    static getCPU(): Promise<Systeminformation.CpuData> {
         return new Promise<Systeminformation.CpuData>((resolve) => {
             system.cpu((d) => resolve(d));
         });
     }
-    static getMem() {
+    static getMem(): Promise<Systeminformation.MemData> {
         return new Promise<Systeminformation.MemData>((resolve) => {
             system.mem((d) => resolve(d));
         });
     }
-    static async getProcesses() {
+    static async getProcesses(): Promise<Systeminformation.ProcessesProcessData[]> {
         return new Promise<Systeminformation.ProcessesProcessData[]>((resolve) => {
             system.processes((d) => resolve(d.list));
         });
     }
-    static async getNetworkInterfaces() {
+    static async getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]> {
         return new Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]>((resolve) => {
             system.networkInterfaces((d) => resolve(d));
         });
     }
-    static getUsers() {
+    static getUsers(): Promise<Systeminformation.UserData[]> {
         return new Promise<Systeminformation.UserData[]>((resolve) => {
             system.users((d) => resolve(d));
         });
+    }
+    async sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[]) {
+        if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
+
+        let initReq: Beacon.initReq = {
+            apps: apps,
+            networkInterfaces: ifaces,
+            users: users,
+        };
+        for (let i = 0; i < initReq.networkInterfaces.length; i++) {
+            const iface = initReq.networkInterfaces[i];
+            await this.api.addInterface(iface, this.token);
+        }
+
+        for (let i = 0; i < initReq.apps.length; i++) {
+            const apps = initReq.apps[i];
+            await this.api.addProcess(apps, this.token);
+        }
+
+        for (let i = 0; i < initReq.users.length; i++) {
+            const user = initReq.users[i];
+            await this.api.addUser(user, this.token);
+        }
+        return;
     }
     async addUser(username: string, loggedIn?: boolean) {
         let event: UserEvent.event = {
@@ -86,6 +109,7 @@ export class Beacon {
 
         return await this._sendEvent(event);
     }
+
     async delUser(username: string) {
         let event: UserEvent.event = {
             description: "user deleted",
@@ -379,7 +403,28 @@ export class Beacon {
         return result;
     }
 }
-
+export class TestBeacon extends Beacon {
+    constructor(hostname: string, serverUrl: string) {
+        super(serverUrl);
+        this.hostname = hostname;
+    }
+    async requestToken(key: string) {
+        this.hostname = this.hostname;
+        let osInfo = await Beacon.getOS();
+        let cpu = await Beacon.getCPU();
+        let mem = await Beacon.getMem();
+        let data: Beacon.Init = {
+            os: osInfo,
+            hostname: this.hostname,
+            hardware: {
+                cpu: `${cpu.model} ${cpu.cores} ${cpu.vendor}`,
+                mem: `${mem.total}`,
+            },
+        };
+        let result = await this.api.requestToken(key, data);
+        this.token = result;
+    }
+}
 export namespace Beacon {
     export interface Init {
         os: {
@@ -414,9 +459,9 @@ export namespace Beacon {
         mac: string;
         state: "up" | "down";
         type?: string;
-        speed?: string;
-        virtual?: string;
-        dhcp?: string;
+        speed?: number | null;
+        virtual?: boolean;
+        dhcp?: boolean;
     }
 
     export interface userLogin {

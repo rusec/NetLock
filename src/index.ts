@@ -12,7 +12,7 @@ import crypto from "crypto";
 import { BeaconRouter } from "./routes/target/target";
 import args from "args";
 import { log } from "./utils/output/debug";
-
+import compression from "compression";
 args.option("passphrase", "passphrase for ssl cert");
 const flags = args.parse(process.argv);
 
@@ -26,6 +26,7 @@ app.use((req, res, next) => {
     res.locals.cspNonce = crypto.randomBytes(32).toString("hex");
     next();
 });
+app.use(compression());
 app.use(
     helmet({
         contentSecurityPolicy: {
@@ -37,7 +38,11 @@ app.use(
 );
 app.use(morgan(":method :url :status :res[content-length] - :response-time ms"));
 app.use(express.static(path.join(__dirname, "../public")));
-app.use(express.json());
+app.use(
+    express.json({
+        limit: 52428800,
+    })
+);
 
 const options = {
     definition: {

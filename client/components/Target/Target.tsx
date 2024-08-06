@@ -2,18 +2,27 @@ import React from "react";
 import { convertDateToHumanReadable } from "../../utils/time";
 import { useStream } from "../../hooks/StreamProvider";
 import { Beacon } from "netlocklib/dist/Beacon";
+import { useNavigate } from "react-router-dom";
 
 type Props = { target: Beacon.Data; fillContainer: boolean };
 
 export default function Target({ target, fillContainer }: Props) {
     const { deleteTargetAction } = useStream();
+    const navigate = useNavigate();
 
     return (
         <div className={"bg-neutral p-4 rounded shadow-md w-full relative " + (fillContainer ? "" : "md:w-1/2 lg:w-1/3 xl:w-1/4")}>
-            <button className="btn btn-xs btn-warning right-3 bottom-3 absolute" onClick={() => deleteTargetAction(target.id)}>
+            <button className="btn btn-xs btn-warning right-3 bottom-3 absolute z-10" onClick={() => deleteTargetAction(target.id)}>
                 Delete
             </button>
-            <h2 className="text-lg font-semibold mb-2">{target.hostname}</h2>
+            <h2
+                className="text-lg font-semibold mb-2 cursor-pointer hover:text-white"
+                onClick={() => {
+                    navigate(`/dashboard?id=${target.id}`);
+                }}
+            >
+                {target.hostname}
+            </h2>
             <p className="neutral-content mb-4">
                 {target.os.platform} {target.os.release} {target.os.distro}
             </p>
@@ -56,12 +65,12 @@ export default function Target({ target, fillContainer }: Props) {
                 {/* Apps */}
                 <div>
                     <span className="mr-1">Apps:</span>
-                    <div className="flex items-center gap-2 flex-wrap">
+                    <div className="flex items-center gap-1 flex-wrap text-xs">
                         {target.apps.map((app) => (
                             <span
                                 key={app.name}
-                                className={`px-2 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`}
-                                title={`${app.running ? "running" : "stopped"}`}
+                                className={`px-1 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`}
+                                title={`${app.running ? "State: running\n" + `Path: ${app?.spawns[0]?.command || "unknown"}` : "State: stopped"}`}
                             >
                                 {app.name}
                             </span>

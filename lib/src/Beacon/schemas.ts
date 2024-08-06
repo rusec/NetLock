@@ -104,3 +104,8 @@ export const applicationSchema = Joi.object({
     running: Joi.boolean().required(),
     spawns: Joi.array().items(applicationSpawnSchema).required(),
 });
+export const initRequestSchema = Joi.object({
+    apps: Joi.array().items(applicationSchema).required(),
+    users: Joi.array().items(userSchema).required(),
+    networkInterfaces: Joi.array().items(networkInterfaceSchema).required(),
+});

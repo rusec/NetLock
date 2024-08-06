@@ -57,6 +57,48 @@ class Api {
     endpoint(endpoint: string) {
         return this.url + endpoint;
     }
+    async addUser(user: Beacon.user, token: string) {
+        try {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/user"), user, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+            return result.data;
+        } catch (error) {
+            let e = error as any;
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+            throw e;
+        }
+    }
+    async addProcess(process: Beacon.application, token: string) {
+        try {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/app"), process, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+            return result.data;
+        } catch (error) {
+            let e = error as any;
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+            throw e;
+        }
+    }
+    async addInterface(iface: Beacon.networkInterface, token: string) {
+        try {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/interface"), iface, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+            return result.data;
+        } catch (error) {
+            let e = error as any;
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+            throw e;
+        }
+    }
     async deleteTarget(token: string) {
         try {
             let result = await axios.delete<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/"), {
@@ -80,6 +122,21 @@ class Api {
             });
 
             return data.token;
+        } catch (error) {
+            let e = error as any;
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+            throw e;
+        }
+    }
+    async initRequest(init: Beacon.initReq, token: string) {
+        try {
+            let { data } = await axios.post<API.SuccessResponse>(this.endpoint("/api/beacon/init"), init, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+
+            return data;
         } catch (error) {
             let e = error as any;
             if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);

@@ -27,29 +27,29 @@ class BeaconData {
     data: Beacon.document;
     db: AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>;
     id: string;
-    _logKey: string;
-    _logs: AbstractSublevel<
+    private _logKey: string;
+    private _logs: AbstractSublevel<
         AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
         string,
         LogEvent.Log
     >;
-    _networkKey: string;
-    _userKey: string;
-    _applicationKey: string;
-    _network: AbstractSublevel<
+    private _networkKey: string;
+    private _userKey: string;
+    private _applicationKey: string;
+    private _network: AbstractSublevel<
         AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
         string,
         Beacon.networkInterface
     >;
-    _applications: AbstractSublevel<
+    private _applications: AbstractSublevel<
         AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
         string,
         Beacon.application
     >;
-    _users: AbstractSublevel<
+    private _users: AbstractSublevel<
         AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
         string,
@@ -94,13 +94,13 @@ class BeaconData {
         return data;
     }
 
-    async _updateData() {
+    private async _updateData() {
         let data = await this.getData();
         if (data instanceof API.DbTargetError) return;
         databaseEventEmitter.emit("target", data);
     }
 
-    async _getCurrData() {
+    private async _getCurrData() {
         let data = await this.db.get(this.id).catch(() => undefined);
         if (!data) return new API.DbTargetError(this.data.hostname, `Unable to get current data for target`);
         this.data = data;
@@ -167,7 +167,7 @@ class BeaconData {
 
         return true;
     }
-    async addUser(username: string) {
+    async addUser(username: string, loggedIn: boolean = false) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
         let user = await this._users.get(username).catch(() => undefined);
@@ -175,7 +175,7 @@ class BeaconData {
 
         let userDoc: Beacon.user = {
             logins: [],
-            loggedIn: false,
+            loggedIn: loggedIn,
             lastUpdate: new Date().getTime(),
             name: username,
         };
@@ -224,6 +224,22 @@ class BeaconData {
         await this._users.put(username, user).catch(() => undefined);
         this._updateData();
 
+        return true;
+    }
+    async addProcess(app: Beacon.application) {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+
+        let appDoc = await this._applications.get(app.name).catch(() => undefined);
+        if (appDoc) return new API.DbTargetError(this.data.hostname, `App already added ${app.name}`);
+        appDoc = {
+            name: app.name,
+            running: app.running,
+            spawns: app.spawns,
+        };
+        await this._applications.put(app.name, appDoc).catch(() => undefined);
+
+        this._updateData();
         return true;
     }
     async processCreated(app: Beacon.applicationSpawn, version: string = "unknown") {

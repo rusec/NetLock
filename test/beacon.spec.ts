@@ -1,7 +1,8 @@
-import { Beacon } from "netlocklib/dist/Beacon";
-import { faker } from "@faker-js/faker";
+import { Beacon, TestBeacon } from "netlocklib/dist/Beacon";
+import { faker, ne } from "@faker-js/faker";
 import { targetApp } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
+import os from "os";
 describe("Beacon Class", function () {
     let beacon: Beacon;
     let interfaceToTarget: Beacon.networkInterface = {
@@ -32,12 +33,40 @@ describe("Beacon Class", function () {
     };
     let appToTarget: targetApp = { name: appInfo.name, running: true, version: faker.system.semver(), pids: [], instances: 0 };
     beforeAll(async () => {
-        beacon = new Beacon("https://localhost");
+        beacon = new TestBeacon("Testing Beacon: " + faker.person.fullName(), "https://localhost");
         await beacon.requestToken("MindoverMatter");
         await beacon.addUser(userToTarget.name);
         await beacon.interfaceCreated(interfaceToTarget);
         await beacon.processCreated(appInfo);
-    });
+        let ifaces = await Beacon.getNetworkInterfaces();
+        let users = (await Beacon.getUsers()).map((u) => {
+            let user: Beacon.user = {
+                lastUpdate: new Date().getTime(),
+                loggedIn: true,
+                logins: [{ ...u, name: u.user, date: new Date(u.date).getTime() }],
+                name: u.user,
+            };
+            return user;
+        });
+        let apps = (await Beacon.getProcesses()).map((a) => {
+            let app: Beacon.application = {
+                name: a.name,
+                running: true,
+                spawns: [a],
+            };
+            return app;
+        });
+
+        let networkInterfaces: Beacon.networkInterface[];
+        if (!Array.isArray(ifaces)) {
+            networkInterfaces = [{ ...ifaces, state: ifaces.operstate === "up" ? "up" : "down" }];
+        } else {
+            networkInterfaces = ifaces.map((i) => {
+                return { ...i, state: i.operstate === "up" ? "up" : "down" };
+            });
+        }
+        await beacon.sendInit(users, networkInterfaces, apps);
+    }, 20000);
     let userToAddAndDelete = faker.internet.userName();
     it("should add a user", async function () {
         const response = await beacon.addUser(userToAddAndDelete);
@@ -179,7 +208,7 @@ describe("Beacon Class", function () {
     });
 
     afterAll(async () => {
-        const response = await beacon.delete();
-        console.log(response);
+        // const response = await beacon.delete();
+        // console.log(response);
     });
 });

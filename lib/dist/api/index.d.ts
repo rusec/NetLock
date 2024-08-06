@@ -40,9 +40,13 @@ declare class Api {
     url: string;
     constructor(url: string);
     endpoint(endpoint: string): string;
+    addUser(user: Beacon.user, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
+    addProcess(process: Beacon.application, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
+    addInterface(iface: Beacon.networkInterface, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     deleteTarget(token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     requestToken(key: string, info: Beacon.Init): Promise<string>;
-    postEvent(event: Event, token: string): Promise<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>;
+    initRequest(init: Beacon.initReq, token: string): Promise<API.SuccessResponse>;
+    postEvent(event: Event, token: string): Promise<API.SuccessResponse | API.ErrorResponse | API.DbTargetErrorResponse | API.ValidationError>;
 }
 export default Api;
 //# sourceMappingURL=index.d.ts.map

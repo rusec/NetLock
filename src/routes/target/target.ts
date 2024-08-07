@@ -87,28 +87,39 @@ let router = Router({
  *       401:
  *         description: Unauthorized. The request does not include the correct authorization header.
  */
-
 router.post(
     "/register",
     isBeacon,
     async (req: Request, res: Response<API.ErrorResponse | API.ValidationError | API.TokenResponse>, next: NextFunction) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Beacon.Init;
         const { error } = schemas.initSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
 
+        // Create a target object from the request body
         let target: Beacon.Init = {
             hostname: body.hostname,
             os: body.os,
             hardware: body.hardware,
         };
+
+        // Generate a unique ID for the target and check if it already exists
         let checkID = await db.makeTargetId(target);
         let checkForAlreadyRequested = await db.getBeacon(checkID);
-        if (checkForAlreadyRequested) return res.status(400).json({ status: "error", error: "Beacon already registered" });
+        if (checkForAlreadyRequested) {
+            return res.status(400).json({ status: "error", error: "Beacon already registered" });
+        }
+
+        // Create a new target in the database
         let id = await db.createTarget(target);
         let checkForTarget = await db.getBeacon(id);
-        if (!id || !checkForTarget) return res.status(400).json({ status: "error", error: "Unable to register beacon" });
+        if (!id || !checkForTarget) {
+            return res.status(400).json({ status: "error", error: "Unable to register beacon" });
+        }
+
+        // Create a beacon token with the target ID and other details
         let beaconTok: beaconToken = {
             id: id,
             dateAdded: new Date().toISOString(),
@@ -116,12 +127,11 @@ router.post(
             isBeacon: true,
         };
 
+        // Generate a token for the beacon and send it in the response
         let token = await createToken(beaconTok);
         res.status(200).json({ token: token });
-        //request checks
     }
 );
-
 /**
  * @swagger
  * components:
@@ -215,18 +225,26 @@ router.post(
         res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
         next: NextFunction
     ) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Beacon.application;
         let { error } = applicationSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
+
+        // Error if client is unknown
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        // Retrieve the beacon data from the database
         let target = await db.getBeacon(req.client.id);
+
+        // Error if data is not found
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
 
+        // Add the application process to the target
         await target.addProcess(body);
 
+        // Respond with success message
         return res.status(200).json({ status: "success", message: "Beacon Added Application" });
     }
 );
@@ -239,17 +257,26 @@ router.post(
         res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
         next: NextFunction
     ) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Beacon.networkInterface;
         let { error } = networkInterfaceSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
+
+        // Error if client is unknown
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        // Retrieve the beacon data from the database
         let target = await db.getBeacon(req.client.id);
+
+        // Error if data is not found
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
 
+        // Add the interface to the target
         await target.addInterface(body);
+
+        // Respond with success message
 
         return res.status(200).json({ status: "success", message: "Beacon Added Network Interface" });
     }
@@ -263,18 +290,26 @@ router.post(
         res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
         next: NextFunction
     ) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Beacon.user;
         let { error } = networkInterfaceSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
+
+        // Error if client is unknown
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        // Retrieve the beacon data from the database
         let target = await db.getBeacon(req.client.id);
+
+        // Error if data is not found
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
 
+        // Add the interface to the target
         await target.addUser(body.name, body.loggedIn);
 
+        // Respond with success message
         return res.status(200).json({ status: "success", message: "Beacon Added User" });
     }
 );
@@ -287,30 +322,41 @@ router.post(
         res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
         next: NextFunction
     ) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Beacon.initReq;
         let { error } = initRequestSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
+
+        // Error if client is unknown
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        // Retrieve the beacon data from the database
         let target = await db.getBeacon(req.client.id);
+
+        // Error if data is not found
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
 
+        // Add network interfaces to the target
         for (let i = 0; i < body.networkInterfaces.length; i++) {
             const iface = body.networkInterfaces[i];
             await target.addInterface(iface);
         }
 
+        // Add applications to the target
         for (let i = 0; i < body.apps.length; i++) {
             const apps = body.apps[i];
             await target.addProcess(apps);
         }
 
+        // Add users to the target
         for (let i = 0; i < body.users.length; i++) {
             const user = body.users[i];
             await target.addUser(user.name, user.loggedIn);
         }
+
+        // Respond with success message
         return res.status(200).json({ status: "success", message: "Beacon init complete" });
     }
 );
@@ -405,24 +451,45 @@ router.post(
         res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
         next: NextFunction
     ) => {
+        // Extract and validate the request body against the schema
         let body = req.body as Event;
         let { error } = eventSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
         }
+        // Error if client is unknown
         if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+        // Retrieve the beacon data from the database
         let target = await db.getBeacon(req.client.id);
-
+        // Error if data is not found
         if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
         let result: boolean | API.DbTargetError = false;
+
+        // Branch out based on which event has been send
         switch (body.event) {
             case "fileAccessed": {
+                // Extract body as Event
                 let data = body as FileEvent.event;
 
+                /**
+                 * Set message which will appear on frontend
+                 */
                 let message = `File ${data.file} Accessed By ${data.user}`;
+
+                /**
+                 * Create a BeaconEvent with the message and set if its urgent or not
+                 *
+                 * To be implemented: reading urgent list from database to see if some events were sent as urgent
+                 */
+
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+
+                // Add the event to the target
                 await target.addLog(log);
+
+                // set the result as true to identify that the Log has been processed
                 result = true;
                 break;
             }
@@ -431,7 +498,10 @@ router.post(
                 let data = body as FileEvent.event;
 
                 let message = `File ${data.file} Created By ${data.user}`;
+
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+
+                // Add the event to the target
                 await target.addLog(log);
                 result = true;
 
@@ -484,10 +554,14 @@ router.post(
             }
             case "interfaceIpChange": {
                 let data = body as NetworkEvent.event;
+
+                // Error if Ip or Subnet is not set
                 if (!data.ip || !data.subnet)
                     return res.status(400).json({ status: "error", error: "Invalid request for Ip change missing ip or subnet" });
                 let message = `Interface ${data.mac} Ip${data.version} change ${data.ip}`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+
+                // Update the ip using mac address of the interface
                 result =
                     data.version == "4"
                         ? await target.updateInterfaceIPv4(data.mac, data.ip, data.subnet)
@@ -596,14 +670,21 @@ router.post(
     }
 );
 router.delete("/", authenticate, isBeacon, async (req: AuthenticatedRequest, res: Response<API.ErrorResponse | API.SuccessResponse>) => {
+    // Error if client is unknown
     if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
 
+    // Retrieve the beacon data from the database
     let target = await db.getBeacon(req.client.id);
 
+    // Error if data is not found
     if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
-    let result = await target.delTarget();
-    if (!result) return res.status(400).json({ status: "error", error: `Unable to delete` });
 
+    // Delete the target from the database
+    let result = await target.delTarget();
+    if (!result) return res.status(400).json({ status: "error", error: "Unable to delete" });
+
+    // Respond with success message
     return res.status(200).json({ status: "success", message: `Deleted ${req.client.id}` });
 });
+
 export { router as BeaconRouter };

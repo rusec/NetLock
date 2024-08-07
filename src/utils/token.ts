@@ -28,7 +28,11 @@ async function authenticate(req: AuthenticatedRequest, res: Response, next: Next
     try {
         let client = (await tokenUtils.verify(token, secret)) as beaconToken | userToken;
 
-        // implement client from Token
+        /**
+         * Client holds the data to be used later on
+         * Client can either be beaconToken or a userToken object.
+         * Depending on this object, changes how the requester can interact with the server
+         */
         req.client = client;
         next();
     } catch (error) {

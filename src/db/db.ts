@@ -73,10 +73,13 @@ class BeaconData {
         this._applications = this.db.sublevel(this._applicationKey, { valueEncoding: "json" });
         this._users = this.db.sublevel(this._userKey, { valueEncoding: "json" });
     }
+    // Update Last ping
     async updateLastPing() {
         this.data.lastPing = new Date().getDate();
         await this._updateData();
     }
+
+    // Get Current data and associated data for a Beacon
     async getData() {
         let apps: Beacon.application[] = [];
         for await (const app of this._applications.values()) {
@@ -94,12 +97,17 @@ class BeaconData {
         return data;
     }
 
+    // Sends a Event to the frontend with the beacons data.
     private async _updateData() {
         let data = await this.getData();
         if (data instanceof API.DbTargetError) return;
         databaseEventEmitter.emit("target", data);
     }
 
+    /**
+     * Gets the current data for a Beacon.
+     * This also will check if the Beacon has been deleted
+     */
     private async _getCurrData() {
         let data = await this.db.get(this.id).catch(() => undefined);
         if (!data) return new API.DbTargetError(this.data.hostname, `Unable to get current data for target`);
@@ -107,6 +115,7 @@ class BeaconData {
         return true;
     }
 
+    // Update the state of a interface
     async updateInterfaceStat(mac: string, state: "down" | "up") {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -119,6 +128,8 @@ class BeaconData {
         this._updateData();
         return true;
     }
+
+    // Add an interface to a Beacon
     async addInterface(ifaceRequest: Beacon.networkInterface) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -131,6 +142,7 @@ class BeaconData {
 
         return true;
     }
+    // Update the IPv4 Address of a beacon interface
     async updateInterfaceIPv4(mac: string, ip: string, subnet: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -145,6 +157,7 @@ class BeaconData {
 
         return true;
     }
+    // Update the IPv6 Address of a beacon interface
     async updateInterfaceIPv6(mac: string, ip: string, subnet: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -159,6 +172,7 @@ class BeaconData {
 
         return true;
     }
+    // Remove an interface from a beacon
     async removeInterface(mac: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -167,6 +181,7 @@ class BeaconData {
 
         return true;
     }
+    // Add a user to a beacon
     async addUser(username: string, loggedIn: boolean = false) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -184,6 +199,7 @@ class BeaconData {
 
         return true;
     }
+    // remove a user from a beacon
     async removeUser(username: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -195,6 +211,8 @@ class BeaconData {
 
         return true;
     }
+
+    // Update a user on a beacon.
     async updateUser(username: string, logInRequest: Beacon.userLogin) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -211,6 +229,7 @@ class BeaconData {
 
         return true;
     }
+    // Set a user to be logged out. happens when user is no longer detected on a system.
     async userLogout(username: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -226,6 +245,7 @@ class BeaconData {
 
         return true;
     }
+    // Add a process to the beacon
     async addProcess(app: Beacon.application) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -242,6 +262,8 @@ class BeaconData {
         this._updateData();
         return true;
     }
+
+    // Add Process Spawn to the beacon, Create a app entry if its not there.
     async processCreated(app: Beacon.applicationSpawn, version: string = "unknown") {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -262,6 +284,7 @@ class BeaconData {
         this._updateData();
         return true;
     }
+    // Set a process as ended if no longer detected on the system.
     async processEnded(name: string) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;
@@ -277,6 +300,7 @@ class BeaconData {
 
         return true;
     }
+    // add a log event to a beacon log.
     async addLog(event: LogEvent.BeaconEvent) {
         let uuid = randomUUID();
         let eventKey = `log_${new Date().toISOString()}_${this.data.hostname}_${event.event}_${uuid}`;
@@ -285,6 +309,8 @@ class BeaconData {
         this._logs.put(eventKey, e);
         return true;
     }
+
+    // get all of the beacons longs
     async getLogs() {
         let logs = [];
         for await (const key of this._logs.keys()) {
@@ -296,6 +322,7 @@ class BeaconData {
 
         return logs;
     }
+    // Delete the beacon from the Database.
     async delTarget() {
         await this._network.clear();
         await this._applications.clear();
@@ -315,11 +342,15 @@ class DataBase {
         });
         this.targets = this.db.sublevel("targets", { valueEncoding: "json" });
     }
+
+    // Fetch the user from the database
     async fetchUser() {
         let user: DbUser = await this.db.get("user").catch(() => undefined);
         if (!user) return false;
         return user;
     }
+
+    // Authenticate the user with the provided password
     async login(password: string) {
         let user = await this.fetchUser();
         if (!user || !user.password) return false;
@@ -330,6 +361,8 @@ class DataBase {
         await this.db.put("user", user);
         return true;
     }
+
+    // Create a new user in the database
     async createUser(newUser: UserDocRequest) {
         let user = await this.fetchUser();
         if (user) return false;
@@ -345,6 +378,8 @@ class DataBase {
         await this.db.put("user", userDoc);
         return true;
     }
+
+    // Set a new password for the user
     async setPassword(password: string) {
         let user = await this.fetchUser();
         if (!user) return false;
@@ -355,28 +390,33 @@ class DataBase {
         return true;
     }
 
+    // Generate a unique ID for the target
     makeTargetId(data: Beacon.Init) {
         let sha = crypto.createHash("sha256");
         let hash = sha.update(data.hostname);
         return hash.digest().toString("hex");
     }
 
+    // Create a new target in the database
     async createTarget(data: Beacon.Init) {
         let id = this.makeTargetId(data);
 
         // Need to standardize input here. some values are needed for the rest of the code but not for initial setup
-
         let target: Beacon.document = { ...data, id: id, dateAdded: new Date().getTime(), lastPing: new Date().getTime() };
         databaseEventEmitter.emit("target", { ...target, apps: [], networkInterfaces: [], users: [] });
 
         await this.targets.put(id, target).catch((err) => console.log(err));
         return id;
     }
+
+    // Retrieve the beacon data from the database
     async getBeacon(id: string) {
         let userData = await this.targets.get(id).catch(() => undefined);
         if (!userData) return false;
         return new BeaconData(userData, id, this.targets);
     }
+
+    // Retrieve all logs from the database
     async getAllLogs() {
         let mainLogs = [];
         for await (const [key, value] of this.targets.iterator()) {
@@ -388,6 +428,8 @@ class DataBase {
         let flatLogs = mainLogs.flat();
         return flatLogs.sort((a: LogEvent.Log, b: LogEvent.Log) => a.timestamp - b.timestamp);
     }
+
+    // Retrieve all targets from the database
     async getAllTargets() {
         let data: Beacon.Data[] = [];
         for await (const [key, value] of this.targets.iterator()) {

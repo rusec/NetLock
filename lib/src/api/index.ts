@@ -1,5 +1,4 @@
 import axios from "axios";
-import { target, targetRequest } from "../Target";
 import { Event, LogEvent } from "../Events";
 import { ValidationErrorItem } from "joi";
 import { Beacon } from "../Beacon";

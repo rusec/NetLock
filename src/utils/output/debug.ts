@@ -17,7 +17,6 @@ export type options = "log" | "debug" | "warn" | "error" | "info" | "success" | 
  *
  * @param {string} message - The message to be logged.
  * @param {string} [type="debug"] - The type of message (e.g., "log", "debug", "warn", "error", "info", "success").
- * @param {boolean} [override=false] - If true, the message type is overridden by the provided type.
  * @returns {void} This function does not return a value.
  */
 var log = (message: string, type: options = "debug"): void => {

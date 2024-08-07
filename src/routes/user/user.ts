@@ -66,18 +66,23 @@ router.post(
     "/register",
     limiter,
     async (req: Request, res: Response<API.SuccessResponse | API.ErrorResponse | API.ValidationError>, next: NextFunction) => {
+        // Extract and validate the request body against the schema
         let body = req.body as registerRequest;
-
         let { error } = registerSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "invalid input", error: error.details });
         }
 
+        // Create a new user in the database
         let result = await db.createUser({
             ip: req.ip || "unknown",
             password: body.password,
         });
+
+        // Error if unable to register user
         if (!result) return res.status(400).json({ status: "error", error: "unable to register user" });
+
+        // Respond with success message
         return res.status(200).json({ status: "success", message: "created user" });
     }
 );
@@ -132,18 +137,22 @@ router.post(
     "/resetpass",
     limiter,
     async (req: Request, res: Response<API.SuccessResponse | API.ErrorResponse | API.ValidationError>, next: NextFunction) => {
+        // Extract and validate the request body against the schema
         let body = req.body as resetPassRequest;
-
         let { error } = resetSchema.validate(body);
         if (error) {
             return res.status(400).json({ status: "error", message: "invalid input", error: error.details });
         }
 
+        // Authenticate the user with the current password
         let result = await db.login(body.current);
         if (!result) return res.status(401).json({ status: "error", error: "Unauthorized" });
 
+        // Update the password in the database
         result = await db.setPassword(body.newPassword);
         if (!result) return res.status(400).json({ status: "error", error: "Unable to change password" });
+
+        // Respond with success message
         return res.status(200).json({ status: "success", message: "updated" });
     }
 );
@@ -175,19 +184,23 @@ router.post(
  */
 
 router.get("/stream", authenticate, validateUser, async (req: Request, res: Response) => {
+    // Set headers for Server-Sent Events (SSE)
     res.setHeader("Content-Type", "text/event-stream");
     res.setHeader("Cache-Control", "no-cache");
     res.setHeader("Connection", "keep-alive");
     res.flushHeaders();
 
+    // Listen for 'target' events and send them to the client
     databaseEventEmitter.on("target", (target) => {
         res.write(`event:targets\ndata: ${JSON.stringify(target)}\n\n`);
     });
 
+    // Listen for 'logs' events and send them to the client
     databaseEventEmitter.on("logs", (data) => {
         res.write(`event:logs\ndata: ${JSON.stringify(data)}\n\n`);
     });
 });
+
 /**
  * @swagger
  * /api/user/data/all:
@@ -207,9 +220,16 @@ router.get("/stream", authenticate, validateUser, async (req: Request, res: Resp
  *         description: Unauthorized.
  */
 router.get("/data/all", authenticate, validateUser, async (req: Request, res: Response<API.TargetsAndLogsResponse | API.ErrorResponse>) => {
+    // Retrieve all targets from the database
     let targets = await db.getAllTargets();
+
+    // Retrieve all logs from the database
     let logs = await db.getAllLogs();
+
+    // Error if unable to retrieve targets or logs
     if (!targets || !logs) return res.status(400).json({ status: "error", error: "unable to get info" });
+
+    // Respond with the retrieved targets and logs
     return res.status(200).json({ targets, logs });
 });
 /**
@@ -240,13 +260,22 @@ router.get("/data/all", authenticate, validateUser, async (req: Request, res: Re
  *         description: Unauthorized.
  */
 router.get("/targets/:target", authenticate, validateUser, async (req: Request, res: Response<API.ErrorResponse | Beacon.Data>) => {
+    // Error if target parameter is missing
     if (!req.params.target) return res.status(400).json({ status: "error", error: "Unable to find target" });
+
+    // Retrieve the beacon data from the database
     let target = await db.getBeacon(req.params.target);
+
+    // Error if data is not found
     if (!target) return res.status(400).json({ status: "error", error: "Unable to find target" });
+
+    // Retrieve the data associated with the target
     let data = await target.getData();
 
+    // Respond with the retrieved data
     return res.status(200).json(data);
 });
+
 /**
  * @swagger
  * /api/user/targets/{target}:
@@ -272,19 +301,37 @@ router.get("/targets/:target", authenticate, validateUser, async (req: Request, 
  *         description: Unauthorized.
  */
 router.delete("/targets/:target", authenticate, validateUser, async (req: Request, res: Response<API.SuccessResponse | API.ErrorResponse>) => {
+    // Error if target parameter is missing
     if (!req.params.target) return res.status(400).json({ status: "error", error: "No target selected" });
+
+    // Retrieve the target data from the database
     let targetData = await db.getBeacon(req.params.target);
+
+    // Error if data is not found
     if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });
+
+    // Delete the target from the database
     await targetData.delTarget();
+
+    // Respond with success message
     return res.status(200).json({ status: "success", message: "target deleted" });
 });
 
 // gets logs for target
 router.get("/logs/:target", authenticate, validateUser, async (req: Request, res: Response<API.ErrorResponse | LogEvent.Log[]>) => {
+    // Error if target parameter is missing
     if (!req.params.target) return res.status(400).json({ status: "error", error: "No target selected" });
+
+    // Retrieve the target data from the database
     let targetData = await db.getBeacon(req.params.target);
+
+    // Error if data is not found
     if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });
+
+    // Retrieve the logs associated with the target
     let logs = await targetData.getLogs();
+
+    // Respond with the retrieved logs
     return res.status(200).json(logs);
 });
 
@@ -331,16 +378,18 @@ let loginSchema = Joi.object({
  *         description: Unauthorized.
  */
 router.post("/login", async (req: Request, res: Response<API.ValidationError | API.TokenResponse | API.ErrorResponse>) => {
+    // Extract and validate the request body against the schema
     let body = req.body as loginRequest;
-
     let { error } = loginSchema.validate(body);
     if (error) {
         return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
     }
 
+    // Authenticate the user with the provided password
     let validLogin = await db.login(body.password);
     if (!validLogin) return res.status(401).json({ status: "error", error: "unauthorized" });
 
+    // Create a user token with the login details
     let userTok: userToken = {
         dateAdded: new Date().toISOString(),
         id: "user",
@@ -349,6 +398,7 @@ router.post("/login", async (req: Request, res: Response<API.ValidationError | A
         agent: req.headers["user-agent"] || "unknown",
     };
 
+    // Generate a signed JWT token and send it in the response
     let signedJwt = await createToken(userTok);
     res.status(200).json({ token: signedJwt });
 });

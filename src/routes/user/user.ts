@@ -6,7 +6,6 @@ import db, { databaseEventEmitter } from "../../db/db";
 import Joi from "joi";
 import { rateLimit } from "express-rate-limit";
 import { API } from "netlocklib/dist/api";
-import { target } from "netlocklib/dist/Target";
 import { LogEvent } from "netlocklib/dist/Events";
 import { Beacon } from "netlocklib/dist/Beacon";
 let router = Router({

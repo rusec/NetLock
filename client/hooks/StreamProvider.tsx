@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, SetStateAction, Dispatch } from "react";
 import { useAuth } from "./AuthProvider";
-import { target } from "netlocklib/dist/Target";
 import { EventTypes, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent } from "netlocklib/dist/Events";
 import { alert } from "../components/models/Alert";
 import { Beacon } from "netlocklib/dist/Beacon";

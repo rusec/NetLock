@@ -1,6 +1,5 @@
 import { Beacon, TestBeacon } from "netlocklib/dist/Beacon";
 import { faker, ne } from "@faker-js/faker";
-import { targetApp } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
 import os from "os";
 describe("Beacon Class", function () {
@@ -31,7 +30,7 @@ describe("Beacon Class", function () {
         path: "",
         started: "",
     };
-    let appToTarget: targetApp = { name: appInfo.name, running: true, version: faker.system.semver(), pids: [], instances: 0 };
+    let appToTarget = { name: appInfo.name, running: true, version: faker.system.semver(), pids: [], instances: 0 };
     beforeAll(async () => {
         beacon = new TestBeacon("Testing Beacon: " + faker.person.fullName(), "https://localhost");
         await beacon.requestToken("MindoverMatter");

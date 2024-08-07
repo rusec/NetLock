@@ -1,6 +1,5 @@
 import React from "react";
 import { useStream } from "../../hooks/StreamProvider";
-import { convertDateToHumanReadable } from "../../utils/time";
 import Target from "../Target/Target";
 
 type Props = {};

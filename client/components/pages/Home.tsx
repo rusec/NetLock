@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { target } from "netlocklib/dist/Target";
 import { useStream } from "../../hooks/StreamProvider";
 import Target from "../Target/Target";
 import { Beacon } from "netlocklib/dist/Beacon";

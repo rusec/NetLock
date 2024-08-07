@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useStream } from "../../hooks/StreamProvider";
-import { LogEvent } from "netlocklib/dist/Events";
 import { convertDateToHumanReadable } from "../../utils/time";
 
 type Props = {};

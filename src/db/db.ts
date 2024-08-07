@@ -4,9 +4,7 @@ import { DbUser, UserDocRequest } from "./types/db";
 import bcrypt from "bcrypt";
 import crypto, { randomUUID } from "crypto";
 import EventEmitter from "events";
-import { removeFromArray, removeValueFromArray } from "./utils/utils";
 import { LogEvent } from "netlocklib/dist/Events";
-import { initTarget, target } from "netlocklib/dist/Target";
 import { API } from "netlocklib/dist/api";
 import { Beacon } from "netlocklib/dist/Beacon";
 

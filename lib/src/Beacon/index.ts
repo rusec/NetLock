@@ -426,6 +426,7 @@ export class TestBeacon extends Beacon {
     }
 }
 export namespace Beacon {
+    // First request being made by the beacon should contain the following information
     export interface Init {
         os: {
             platform: string;
@@ -447,7 +448,7 @@ export namespace Beacon {
         };
         hostname: string;
     }
-
+    // Beacon Network interface can contain the following. Any interface updates will have the following info.
     export interface networkInterface {
         iface: string;
         ifaceName: string;
@@ -463,7 +464,7 @@ export namespace Beacon {
         virtual?: boolean;
         dhcp?: boolean;
     }
-
+    // Beacon user Login can contain the following.
     export interface userLogin {
         name: string;
         tty?: string;
@@ -471,6 +472,8 @@ export namespace Beacon {
         ip?: string;
         command?: string;
     }
+
+    // The database will hold the following based on the username. user Login is added to the logins array to be logged
     export interface user {
         name: string;
         loggedIn: boolean;
@@ -478,6 +481,7 @@ export namespace Beacon {
         logins: userLogin[];
     }
 
+    // Application spawn is an instance of an application with the following
     export interface applicationSpawn {
         pid: number;
         parentPid?: number;
@@ -492,22 +496,28 @@ export namespace Beacon {
         params?: string;
         path?: string;
     }
-
+    // Database entry for an application when an instance of an application is spawned its added to the spawns
     export interface application {
         name: string;
         running: boolean;
         spawns: applicationSpawn[];
     }
+
+    // The document stored as info on the beacon
     export interface document extends Init {
         id: string;
         dateAdded: number;
         lastPing: number;
     }
+
+    // init Reqs is for beacons to give info on the computer without triggering log or making log events. used for the first initial start of a beacon.
     export interface initReq {
         apps: application[];
         users: user[];
         networkInterfaces: networkInterface[];
     }
+
+    // Data is the interface which is sent back to the client. gets all applications users and networkInterfaces which are logged
     export interface Data extends document {
         apps: application[];
         users: user[];

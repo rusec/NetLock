@@ -47498,7 +47498,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const AppTable = ({ apps }) => {
     const [selectedIndex, setSelectedIndex] = (0, react_1.useState)(null);
-    return (react_1.default.createElement(react_1.default.Fragment, null,
+    return (react_1.default.createElement("div", null,
         react_1.default.createElement("span", { className: "mr-1 card-title p-2" }, "Apps:"),
         react_1.default.createElement("div", { className: "overflow-x-hidden overflow-y-auto max-h-[30rem]" },
             react_1.default.createElement("table", { className: "table w-full table-pin-rows" },
@@ -47556,7 +47556,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const InterfaceTable = ({ ifaces }) => {
     const [selectedIndex, setSelectedIndex] = (0, react_1.useState)(null);
-    return (react_1.default.createElement(react_1.default.Fragment, null,
+    return (react_1.default.createElement("div", null,
         react_1.default.createElement("span", { className: "mr-1 card-title p-2" }, "Interfaces:"),
         react_1.default.createElement("div", { className: "overflow-x-hidden overflow-y-auto max-h-[30rem]" },
             react_1.default.createElement("table", { className: "table w-full table-pin-rows" },
@@ -47686,6 +47686,68 @@ exports["default"] = LogsTable;
 
 /***/ }),
 
+/***/ "./client/components/Target/ServiceTable.tsx":
+/*!***************************************************!*\
+  !*** ./client/components/Target/ServiceTable.tsx ***!
+  \***************************************************/
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
+const ServiceTable = ({ services }) => {
+    const [selectedIndex, setSelectedIndex] = (0, react_1.useState)(null);
+    return (react_1.default.createElement("div", null,
+        react_1.default.createElement("span", { className: "mr-1 card-title p-2" }, "Services:"),
+        react_1.default.createElement("div", { className: "overflow-x-hidden overflow-y-auto max-h-[30rem]" },
+            react_1.default.createElement("table", { className: "table w-full table-pin-rows" },
+                react_1.default.createElement("thead", null,
+                    react_1.default.createElement("tr", null,
+                        react_1.default.createElement("th", null, "Protocol"),
+                        react_1.default.createElement("th", null, "Port"),
+                        react_1.default.createElement("th", null, "Local Address"),
+                        react_1.default.createElement("th", null, "Service"))),
+                react_1.default.createElement("tbody", { className: "overflow-y-scroll max-h-30" }, services.map((service, i) => (react_1.default.createElement(react_1.default.Fragment, null,
+                    react_1.default.createElement("tr", { key: service.port.localPort, className: `hover:bg-neutral hover:text-white cursor-pointer bg-blue-200 text-blue-800`, onClick: () => setSelectedIndex(selectedIndex === i ? null : i) },
+                        react_1.default.createElement("td", null, service.port.protocol),
+                        react_1.default.createElement("td", null, service.port.localPort),
+                        react_1.default.createElement("td", null, service.port.localAddress),
+                        react_1.default.createElement("td", null, service.service?.name)),
+                    selectedIndex === i && (react_1.default.createElement("tr", null,
+                        react_1.default.createElement("td", { colSpan: 4 },
+                            react_1.default.createElement("div", { className: "mt-1 text-gray-600" },
+                                react_1.default.createElement("h3", { className: "text-lg font-bold" }, "Services Details:"),
+                                react_1.default.createElement("pre", { className: "bg-gray-100 p-2 rounded whitespace-pre-wrap" }, JSON.stringify(service, null, 2))))))))))))));
+};
+exports["default"] = ServiceTable;
+
+
+/***/ }),
+
 /***/ "./client/components/Target/Target.tsx":
 /*!*********************************************!*\
   !*** ./client/components/Target/Target.tsx ***!
@@ -47776,7 +47838,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const UsersTable = ({ users }) => {
     const [selectedIndex, setSelectedIndex] = (0, react_1.useState)(null);
-    return (react_1.default.createElement(react_1.default.Fragment, null,
+    return (react_1.default.createElement("div", null,
         react_1.default.createElement("span", { className: "mr-1 card-title p-2" }, "Users:"),
         react_1.default.createElement("div", { className: "overflow-x-hidden overflow-y-auto max-h-[30rem]" },
             react_1.default.createElement("table", { className: "table w-full table-pin-rows" },
@@ -48097,6 +48159,7 @@ const AppTable_1 = __importDefault(__webpack_require__(/*! ../Target/AppTable */
 const UserTable_1 = __importDefault(__webpack_require__(/*! ../Target/UserTable */ "./client/components/Target/UserTable.tsx"));
 const InterfaceTable_1 = __importDefault(__webpack_require__(/*! ../Target/InterfaceTable */ "./client/components/Target/InterfaceTable.tsx"));
 const LogsTable_1 = __importDefault(__webpack_require__(/*! ../Target/LogsTable */ "./client/components/Target/LogsTable.tsx"));
+const ServiceTable_1 = __importDefault(__webpack_require__(/*! ../Target/ServiceTable */ "./client/components/Target/ServiceTable.tsx"));
 function TargetPage({}) {
     const { targets, lastTargetUpdatedID, deleteTargetAction, logs } = (0, StreamProvider_1.useStream)();
     let [searchParams, setSearchParams] = (0, react_router_dom_1.useSearchParams)();
@@ -48108,7 +48171,7 @@ function TargetPage({}) {
     }
     return (react_1.default.createElement("div", { className: "bg-neutral p-4 rounded shadow-md w-full relative" },
         react_1.default.createElement("button", { className: "btn btn-xs btn-warning right-3 top-3 absolute z-10", onClick: () => deleteTargetAction(target.id) }, "Delete"),
-        react_1.default.createElement("h2", { className: "text-lg font-semibold mb-2 cursor-pointer hover:text-white", title: JSON.stringify({ ...target, apps: undefined, users: undefined, networkInterfaces: undefined }, null, 4) }, target.hostname),
+        react_1.default.createElement("h2", { className: "text-lg font-semibold mb-2 cursor-pointer hover:text-white", title: JSON.stringify({ ...target, apps: undefined, users: undefined, networkInterfaces: undefined, services: undefined }, null, 4) }, target.hostname),
         react_1.default.createElement("p", { className: "neutral-content mb-4" },
             target.os.platform,
             " ",
@@ -48123,9 +48186,10 @@ function TargetPage({}) {
             (0, time_1.convertDateToHumanReadable)(target.lastPing)),
         react_1.default.createElement("div", { className: "flex flex-wrap gap-4 flex-col" },
             react_1.default.createElement(LogsTable_1.default, { targetId: target.id }),
-            react_1.default.createElement(InterfaceTable_1.default, { ifaces: target.networkInterfaces }),
+            react_1.default.createElement(ServiceTable_1.default, { services: target.services }),
             react_1.default.createElement(UserTable_1.default, { users: target.users }),
-            react_1.default.createElement(AppTable_1.default, { apps: target.apps }))));
+            react_1.default.createElement(AppTable_1.default, { apps: target.apps }),
+            react_1.default.createElement(InterfaceTable_1.default, { ifaces: target.networkInterfaces }))));
 }
 
 

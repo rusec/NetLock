@@ -7,6 +7,7 @@ import AppTable from "../Target/AppTable";
 import UsersTable from "../Target/UserTable";
 import InterfaceTable from "../Target/InterfaceTable";
 import LogsTable from "../Target/LogsTable";
+import ServiceTable from "../Target/ServiceTable";
 
 type Props = {};
 
@@ -27,7 +28,7 @@ export default function TargetPage({}: Props) {
             </button>
             <h2
                 className="text-lg font-semibold mb-2 cursor-pointer hover:text-white"
-                title={JSON.stringify({ ...target, apps: undefined, users: undefined, networkInterfaces: undefined }, null, 4)}
+                title={JSON.stringify({ ...target, apps: undefined, users: undefined, networkInterfaces: undefined, services: undefined }, null, 4)}
             >
                 {target.hostname}
             </h2>
@@ -39,13 +40,17 @@ export default function TargetPage({}: Props) {
             <div className="flex flex-wrap gap-4 flex-col">
                 <LogsTable targetId={target.id} />
 
-                <InterfaceTable ifaces={target.networkInterfaces} />
+                {/* Services */}
+                <ServiceTable services={target.services} />
 
                 {/* Users */}
                 <UsersTable users={target.users} />
 
                 {/* Apps */}
                 <AppTable apps={target.apps} />
+
+                {/* Interfaces */}
+                <InterfaceTable ifaces={target.networkInterfaces} />
             </div>
         </div>
     );

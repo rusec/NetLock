@@ -9,7 +9,7 @@ const AppTable: React.FC<Props> = ({ apps }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     return (
-        <>
+        <div>
             <span className="mr-1 card-title p-2">Apps:</span>
 
             <div className="overflow-x-hidden overflow-y-auto max-h-[30rem]">
@@ -48,7 +48,7 @@ const AppTable: React.FC<Props> = ({ apps }) => {
                     </tbody>
                 </table>
             </div>
-        </>
+        </div>
     );
 };
 

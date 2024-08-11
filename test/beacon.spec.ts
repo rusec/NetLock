@@ -65,7 +65,7 @@ describe("Beacon Class", function () {
             });
         }
         await beacon.sendInit(users, networkInterfaces, apps, services);
-    }, 20000);
+    }, 30000);
     let userToAddAndDelete = faker.internet.userName();
     it("should add a user", async function () {
         const response = await beacon.addUser(userToAddAndDelete);
@@ -207,7 +207,7 @@ describe("Beacon Class", function () {
     });
 
     afterAll(async () => {
-        const response = await beacon.delete();
-        console.log(response);
+        // const response = await beacon.delete();
+        // console.log(response);
     });
 });

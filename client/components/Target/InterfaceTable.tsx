@@ -9,7 +9,7 @@ const InterfaceTable: React.FC<Props> = ({ ifaces }) => {
     const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
     return (
-        <>
+        <div>
             <span className="mr-1 card-title p-2">Interfaces:</span>
             <div className="overflow-x-hidden overflow-y-auto max-h-[30rem]">
                 <table className="table w-full table-pin-rows">
@@ -53,7 +53,7 @@ const InterfaceTable: React.FC<Props> = ({ ifaces }) => {
                     </tbody>
                 </table>
             </div>
-        </>
+        </div>
     );
 };
 

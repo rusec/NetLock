@@ -80,7 +80,10 @@ class BeaconData {
         this._users = this.db.sublevel(this._userKey, { valueEncoding: "json" });
         this._services = this.db.sublevel(this._serviceKey, { valueEncoding: "json" });
     }
-    // Adds a port when a port is opened with a process
+    /**
+     * Add a port which opened
+     * when a port opens its assumed a service has started
+     */
     async addPortService(port: Beacon.service) {
         let result = await this._getCurrData();
         if (result instanceof API.DbTargetError) return result;

@@ -1,13 +1,27 @@
 import Joi from "joi";
 import { Beacon } from "../Beacon";
-import { applicationSpawnSchema, networkInterfaceSchema, userLoginSchema } from "../Beacon/schemas";
+import { applicationSpawnSchema, networkInterfaceSchema, ServiceSchema, userLoginSchema } from "../Beacon/schemas";
 
 export interface Event {
-    event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
+    event:
+        | FileEvent.Types
+        | ProcessEvent.Types
+        | NetworkInterfaceEvent.Types
+        | KernelEvent.Types
+        | RegEditEvent.Types
+        | UserEvent.Types
+        | PortEvent.Types;
     user?: string | undefined;
     description: string;
 }
-export type EventTypes = FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
+export type EventTypes =
+    | FileEvent.Types
+    | ProcessEvent.Types
+    | NetworkInterfaceEvent.Types
+    | KernelEvent.Types
+    | RegEditEvent.Types
+    | UserEvent.Types
+    | PortEvent.Types;
 export namespace FileEvent {
     export enum Types {
         FileAccessed = "fileAccessed",
@@ -105,7 +119,28 @@ export namespace KernelEvent {
         path: Joi.string(),
     });
 }
-export namespace NetworkEvent {
+export namespace PortEvent {
+    export enum Types {
+        PortClosed = "portClosed",
+        PortOpened = "portOpened",
+        PortServiceChange = "portServiceChanged",
+    }
+    export interface event extends Event {
+        event: Types;
+        serviceName: string;
+        port: number;
+        portInfo: Beacon.service;
+    }
+    export const portEventSchema = Joi.object({
+        event: Joi.string().valid(PortEvent.Types.PortClosed, PortEvent.Types.PortOpened, PortEvent.Types.PortServiceChange),
+        serviceName: Joi.string().allow(""),
+        portNumber: Joi.number(),
+        portInfo: ServiceSchema,
+        service: Joi.string().allow(""),
+    });
+}
+
+export namespace NetworkInterfaceEvent {
     export enum Types {
         InterfaceDown = "interfaceDown",
         InterfaceUp = "interfaceUp",
@@ -128,11 +163,11 @@ export namespace NetworkEvent {
     }
     export const networkEventSchema = Joi.object({
         event: Joi.string().valid(
-            NetworkEvent.Types.InterfaceDown,
-            NetworkEvent.Types.InterfaceUp,
-            NetworkEvent.Types.InterfaceCreated,
-            NetworkEvent.Types.InterfaceDeleted,
-            NetworkEvent.Types.InterfaceIpChange
+            NetworkInterfaceEvent.Types.InterfaceDown,
+            NetworkInterfaceEvent.Types.InterfaceUp,
+            NetworkInterfaceEvent.Types.InterfaceCreated,
+            NetworkInterfaceEvent.Types.InterfaceDeleted,
+            NetworkInterfaceEvent.Types.InterfaceIpChange
         ),
         user: Joi.string().allow(null),
         description: Joi.string(),
@@ -193,8 +228,9 @@ export namespace LogEvent {
 export const eventSchema = Joi.alternatives().try(
     ProcessEvent.processEventSchema,
     UserEvent.userEventSchema,
-    NetworkEvent.networkEventSchema,
+    NetworkInterfaceEvent.networkEventSchema,
     RegEditEvent.regEditEventSchema,
     FileEvent.fileEventSchema,
-    KernelEvent.kernelEventSchema
+    KernelEvent.kernelEventSchema,
+    PortEvent.portEventSchema
 );

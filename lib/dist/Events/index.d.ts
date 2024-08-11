@@ -1,11 +1,11 @@
 import Joi from "joi";
 import { Beacon } from "../Beacon";
 export interface Event {
-    event: FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
+    event: FileEvent.Types | ProcessEvent.Types | NetworkInterfaceEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types | PortEvent.Types;
     user?: string | undefined;
     description: string;
 }
-export type EventTypes = FileEvent.Types | ProcessEvent.Types | NetworkEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types;
+export type EventTypes = FileEvent.Types | ProcessEvent.Types | NetworkInterfaceEvent.Types | KernelEvent.Types | RegEditEvent.Types | UserEvent.Types | PortEvent.Types;
 export declare namespace FileEvent {
     enum Types {
         FileAccessed = "fileAccessed",
@@ -69,7 +69,21 @@ export declare namespace KernelEvent {
     }
     const kernelEventSchema: Joi.ObjectSchema<any>;
 }
-export declare namespace NetworkEvent {
+export declare namespace PortEvent {
+    enum Types {
+        PortClosed = "portClosed",
+        PortOpened = "portOpened",
+        PortServiceChange = "portServiceChanged"
+    }
+    interface event extends Event {
+        event: Types;
+        serviceName: string;
+        port: number;
+        portInfo: Beacon.service;
+    }
+    const portEventSchema: Joi.ObjectSchema<any>;
+}
+export declare namespace NetworkInterfaceEvent {
     enum Types {
         InterfaceDown = "interfaceDown",
         InterfaceUp = "interfaceUp",

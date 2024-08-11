@@ -40,6 +40,7 @@ declare class Api {
     url: string;
     constructor(url: string);
     endpoint(endpoint: string): string;
+    addService(service: Beacon.service, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     addUser(user: Beacon.user, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     addProcess(process: Beacon.application, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     addInterface(iface: Beacon.networkInterface, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;

@@ -62,17 +62,17 @@ export default function Target({ target, fillContainer }: Props) {
                     </div>
                 </div>
 
-                {/* Apps */}
+                {/* Services */}
                 <div>
-                    <span className="mr-1">Apps:</span>
+                    <span className="mr-1">Service:</span>
                     <div className="flex items-center gap-1 flex-wrap text-xs">
-                        {target.apps.map((app) => (
+                        {target.services.map((service) => (
                             <span
-                                key={app.name}
-                                className={`px-1 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`}
-                                title={`${app.running ? "State: running\n" + `Path: ${app?.spawns[0]?.command || "unknown"}` : "State: stopped"}`}
+                                key={service.port.localPort}
+                                className={`px-1 py-1 rounded ${"bg-blue-200 text-blue-800"}`}
+                                title={`${JSON.stringify(service, null, 4)}`}
                             >
-                                {app.name}
+                                {`${service.service?.name} ${service.port.localAddress}:${service.port.localPort}`}
                             </span>
                         ))}
                     </div>

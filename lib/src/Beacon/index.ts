@@ -1,5 +1,5 @@
 import Api from "../api";
-import { FileEvent, UserEvent, Event, NetworkEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
+import { FileEvent, UserEvent, Event, NetworkInterfaceEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
 import os from "os";
 import system, { Systeminformation } from "systeminformation";
 import * as schemas from "./schemas";
@@ -18,11 +18,14 @@ export class Beacon {
     token: string | "Not Initialized";
     api: Api;
     hostname: string;
-
+    static processes: Systeminformation.ProcessesProcessData[];
+    static processedUpdatedAt: number;
     constructor(serverUrl: string) {
         this.token = "Not Initialized";
         this.api = new Api(serverUrl);
         this.hostname = "";
+        Beacon.processes = [];
+        Beacon.processedUpdatedAt = 0;
     }
     async requestToken(key: string) {
         this.hostname = os.hostname();
@@ -66,12 +69,42 @@ export class Beacon {
             system.networkInterfaces((d) => resolve(d));
         });
     }
+    static async getNetworkConnections() {
+        return new Promise<Beacon.service | Beacon.service[]>((resolve) => {
+            system.networkConnections((d) => {
+                system.processes((p) => {
+                    let processed = d.map((v) => {
+                        let pid = v.pid;
+                        let pro = p.list.find((val) => val.pid == pid);
+                        return { service: pro, port: v };
+                    });
+                    resolve(processed);
+                });
+            });
+        });
+    }
+    static async getNetworkListening() {
+        return new Promise<Beacon.service[]>((resolve) => {
+            system.networkConnections((d) => {
+                system.processes((p) => {
+                    let processed = d
+                        .filter((v) => v.state.toLowerCase() == "listening" || v.state.toLowerCase() == "listen")
+                        .map((v) => {
+                            let pid = v.pid;
+                            let pro = p.list.find((val) => val.pid == pid);
+                            return { service: pro, port: v };
+                        });
+                    resolve(processed);
+                });
+            });
+        });
+    }
     static getUsers(): Promise<Systeminformation.UserData[]> {
         return new Promise<Systeminformation.UserData[]>((resolve) => {
             system.users((d) => resolve(d));
         });
     }
-    async sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[]) {
+    async sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[], services: Beacon.service[]) {
         if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
 
         let initReq: Beacon.initReq = {
@@ -93,6 +126,11 @@ export class Beacon {
             const user = initReq.users[i];
             await this.api.addUser(user, this.token);
         }
+        for (let i = 0; i < services.length; i++) {
+            const service = services[i];
+            await this.api.addService(service, this.token);
+        }
+
         return;
     }
     async addUser(username: string, loggedIn?: boolean) {
@@ -234,9 +272,9 @@ export class Beacon {
     ) {
         let { username } = options || { username: undefined };
 
-        let event: NetworkEvent.event = {
+        let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.iface} ${descriptor.mac} up`,
-            event: NetworkEvent.Types.InterfaceUp,
+            event: NetworkInterfaceEvent.Types.InterfaceUp,
             state: "up",
             mac: descriptor.mac,
             user: username,
@@ -252,9 +290,9 @@ export class Beacon {
     ) {
         let { username } = options || { username: undefined };
 
-        let event: NetworkEvent.event = {
+        let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.iface} ${descriptor.mac} down`,
-            event: NetworkEvent.Types.InterfaceDown,
+            event: NetworkInterfaceEvent.Types.InterfaceDown,
             state: "down",
             mac: descriptor.mac,
             user: username,
@@ -269,10 +307,10 @@ export class Beacon {
         }
     ) {
         let { username } = options || { username: undefined };
-        let event: NetworkEvent.event = {
+        let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.ip4} ${descriptor.mac} created by ${username}`,
             ip: descriptor.ip4,
-            event: NetworkEvent.Types.InterfaceCreated,
+            event: NetworkInterfaceEvent.Types.InterfaceCreated,
             state: descriptor.state,
             mac: descriptor.mac,
             user: username,
@@ -288,9 +326,9 @@ export class Beacon {
     ) {
         let { username } = options || { username: undefined };
 
-        let event: NetworkEvent.event = {
+        let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.mac} deleted by ${username}`,
-            event: NetworkEvent.Types.InterfaceDeleted,
+            event: NetworkInterfaceEvent.Types.InterfaceDeleted,
             state: "down",
             mac: descriptor.mac,
             user: username,
@@ -307,11 +345,11 @@ export class Beacon {
     ) {
         let { username } = options || { username: undefined };
 
-        let event: NetworkEvent.event = {
+        let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.iface} ${descriptor.mac} Ip Change by ${username}`,
             ip: version == "4" ? descriptor.ip4 : descriptor.ip6,
             subnet: version == "4" ? descriptor.ip4subnet : descriptor.ip6subnet,
-            event: NetworkEvent.Types.InterfaceIpChange,
+            event: NetworkInterfaceEvent.Types.InterfaceIpChange,
             mac: descriptor.mac,
             version: version,
             state: descriptor.state,
@@ -448,6 +486,21 @@ export namespace Beacon {
         };
         hostname: string;
     }
+
+    export interface port {
+        protocol: string;
+        localAddress: string;
+        localPort: string;
+        peerAddress?: string;
+        peerPort?: string;
+        state: string;
+        pid: number;
+        process?: string;
+    }
+    export interface service {
+        service: applicationSpawn | undefined;
+        port: port;
+    }
     // Beacon Network interface can contain the following. Any interface updates will have the following info.
     export interface networkInterface {
         iface: string;
@@ -522,5 +575,6 @@ export namespace Beacon {
         apps: application[];
         users: user[];
         networkInterfaces: networkInterface[];
+        services: service[];
     }
 }

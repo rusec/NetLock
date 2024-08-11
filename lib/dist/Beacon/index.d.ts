@@ -16,6 +16,8 @@ export declare class Beacon {
     token: string | "Not Initialized";
     api: Api;
     hostname: string;
+    static processes: Systeminformation.ProcessesProcessData[];
+    static processedUpdatedAt: number;
     constructor(serverUrl: string);
     requestToken(key: string): Promise<void>;
     static getOS(): Promise<Systeminformation.OsData>;
@@ -23,8 +25,10 @@ export declare class Beacon {
     static getMem(): Promise<Systeminformation.MemData>;
     static getProcesses(): Promise<Systeminformation.ProcessesProcessData[]>;
     static getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]>;
+    static getNetworkConnections(): Promise<Beacon.service | Beacon.service[]>;
+    static getNetworkListening(): Promise<Beacon.service[]>;
     static getUsers(): Promise<Systeminformation.UserData[]>;
-    sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[]): Promise<void>;
+    sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[], services: Beacon.service[]): Promise<void>;
     addUser(username: string, loggedIn?: boolean): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     delUser(username: string): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
     /**
@@ -108,6 +112,20 @@ export declare namespace Beacon {
         };
         hostname: string;
     }
+    interface port {
+        protocol: string;
+        localAddress: string;
+        localPort: string;
+        peerAddress?: string;
+        peerPort?: string;
+        state: string;
+        pid: number;
+        process?: string;
+    }
+    interface service {
+        service: applicationSpawn | undefined;
+        port: port;
+    }
     interface networkInterface {
         iface: string;
         ifaceName: string;
@@ -169,6 +187,7 @@ export declare namespace Beacon {
         apps: application[];
         users: user[];
         networkInterfaces: networkInterface[];
+        services: service[];
     }
 }
 //# sourceMappingURL=index.d.ts.map

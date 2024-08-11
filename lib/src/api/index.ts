@@ -56,6 +56,20 @@ class Api {
     endpoint(endpoint: string) {
         return this.url + endpoint;
     }
+    async addService(service: Beacon.service, token: string) {
+        try {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/service"), service, {
+                headers: {
+                    Authorization: token,
+                },
+            });
+            return result.data;
+        } catch (error) {
+            let e = error as any;
+            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+            throw e;
+        }
+    }
     async addUser(user: Beacon.user, token: string) {
         try {
             let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/user"), user, {

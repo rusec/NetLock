@@ -77,6 +77,7 @@ export const userSchema = Joi.object({
     lastUpdate: Joi.number().required(),
     logins: Joi.array().items(userLoginSchema).required(),
 });
+
 export const applicationSpawnSchema = Joi.object({
     pid: Joi.number().required(),
     parentPid: Joi.number().optional(),
@@ -99,6 +100,27 @@ export const applicationSpawnSchema = Joi.object({
 })
     .keys()
     .unknown(true);
+
+export const portSchema = Joi.object({
+    protocol: Joi.string(),
+    localAddress: Joi.string()
+        .ip({ version: ["ipv4", "ipv6"] })
+        .required(),
+    localPort: Joi.string().required(),
+    peerAddress: Joi.string()
+        .ip({ version: ["ipv4", "ipv6"] })
+        .optional(),
+    peerPort: Joi.string().optional(),
+    state: Joi.string(),
+    pid: Joi.number().optional(),
+    process: Joi.string().allow(""),
+})
+    .keys()
+    .unknown(true);
+export const ServiceSchema = Joi.object({
+    port: portSchema,
+    service: applicationSpawnSchema.optional(),
+});
 export const applicationSchema = Joi.object({
     name: Joi.string().required(),
     running: Joi.boolean().required(),

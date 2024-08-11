@@ -55,7 +55,7 @@ describe("Beacon Class", function () {
             };
             return app;
         });
-
+        let services = await Beacon.getNetworkListening();
         let networkInterfaces: Beacon.networkInterface[];
         if (!Array.isArray(ifaces)) {
             networkInterfaces = [{ ...ifaces, state: ifaces.operstate === "up" ? "up" : "down" }];
@@ -64,7 +64,7 @@ describe("Beacon Class", function () {
                 return { ...i, state: i.operstate === "up" ? "up" : "down" };
             });
         }
-        await beacon.sendInit(users, networkInterfaces, apps);
+        await beacon.sendInit(users, networkInterfaces, apps, services);
     }, 20000);
     let userToAddAndDelete = faker.internet.userName();
     it("should add a user", async function () {
@@ -207,7 +207,7 @@ describe("Beacon Class", function () {
     });
 
     afterAll(async () => {
-        // const response = await beacon.delete();
-        // console.log(response);
+        const response = await beacon.delete();
+        console.log(response);
     });
 });

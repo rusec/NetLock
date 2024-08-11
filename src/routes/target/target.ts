@@ -3,10 +3,21 @@ import { AuthenticatedRequest, beaconToken } from "../../utils/types/token";
 import { authenticate, createToken } from "../../utils/token";
 import { isBeacon } from "../../utils/auth";
 import db from "../../db/db";
-import { Event, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent, eventSchema } from "netlocklib/dist/Events";
+import {
+    Event,
+    FileEvent,
+    KernelEvent,
+    LogEvent,
+    NetworkInterfaceEvent,
+    PortEvent,
+    ProcessEvent,
+    RegEditEvent,
+    UserEvent,
+    eventSchema,
+} from "netlocklib/dist/Events";
 import { API } from "netlocklib/dist/api";
 import { Beacon, schemas } from "netlocklib/dist/Beacon";
-import { applicationSchema, initRequestSchema, networkInterfaceSchema } from "netlocklib/dist/Beacon/schemas";
+import { applicationSchema, initRequestSchema, networkInterfaceSchema, ServiceSchema } from "netlocklib/dist/Beacon/schemas";
 let router = Router({
     caseSensitive: true,
 });
@@ -216,6 +227,38 @@ router.post(
  *           type: integer
  *           description: The date the target was added.
  */
+router.post(
+    "/add/service",
+    authenticate,
+    isBeacon,
+    async (
+        req: AuthenticatedRequest,
+        res: Response<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>,
+        next: NextFunction
+    ) => {
+        // Extract and validate the request body against the schema
+        let body = req.body as Beacon.service;
+        let { error } = ServiceSchema.validate(body);
+        if (error) {
+            return res.status(400).json({ status: "error", message: "Invalid request", error: error.details });
+        }
+
+        // Error if client is unknown
+        if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });
+
+        // Retrieve the beacon data from the database
+        let target = await db.getBeacon(req.client.id);
+
+        // Error if data is not found
+        if (!target) return res.status(400).json({ status: "error", error: "Target Not Found" });
+
+        // Add the application process to the target
+        await target.addPortService(body);
+
+        // Respond with success message
+        return res.status(200).json({ status: "success", message: "Beacon Added Application" });
+    }
+);
 router.post(
     "/add/app",
     authenticate,
@@ -534,7 +577,7 @@ router.post(
                 break;
             }
             case "interfaceDown": {
-                let data = body as NetworkEvent.event;
+                let data = body as NetworkInterfaceEvent.event;
                 let message = `Interface ${data.mac} Down`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
                 result = await target.updateInterfaceStat(data.mac, "down");
@@ -544,7 +587,7 @@ router.post(
                 break;
             }
             case "interfaceUp": {
-                let data = body as NetworkEvent.event;
+                let data = body as NetworkInterfaceEvent.event;
                 let message = `Interface ${data.mac} Up`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
                 result = await target.updateInterfaceStat(data.mac, "up");
@@ -553,7 +596,7 @@ router.post(
                 break;
             }
             case "interfaceIpChange": {
-                let data = body as NetworkEvent.event;
+                let data = body as NetworkInterfaceEvent.event;
 
                 // Error if Ip or Subnet is not set
                 if (!data.ip || !data.subnet)
@@ -571,7 +614,7 @@ router.post(
             }
 
             case "interfaceCreated": {
-                let data = body as NetworkEvent.event;
+                let data = body as NetworkInterfaceEvent.event;
                 let message = `Interface ${data.mac} ${data.ip} Created`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
                 result = await target.addInterface(data.descriptor);
@@ -579,7 +622,7 @@ router.post(
                 break;
             }
             case "interfaceDeleted": {
-                let data = body as NetworkEvent.event;
+                let data = body as NetworkInterfaceEvent.event;
                 let message = `Interface ${data.mac} ${data.ip} Deleted`;
                 let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
                 result = await target.removeInterface(data.mac);
@@ -660,7 +703,31 @@ router.post(
                 result = true;
                 break;
             }
-
+            case "portClosed": {
+                let data = body as PortEvent.event;
+                let message = `Port closed ${data.port} with service ${data.serviceName}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.delPortService(data.port.toString());
+                await target.addLog(log);
+                break;
+            }
+            case "portOpened": {
+                let data = body as PortEvent.event;
+                let message = `Port opened ${data.port} with service ${data.serviceName}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                result = await target.addPortService(data.portInfo);
+                await target.addLog(log);
+                break;
+            }
+            case "portServiceChanged": {
+                let data = body as PortEvent.event;
+                let message = `Port ${data.port} service changed to ${data.serviceName}`;
+                let log: LogEvent.BeaconEvent = { ...data, message: message, urgent: false };
+                if (!data.portInfo.service) return res.status(400).json({ status: "error", error: `Unable to change service to unknown` });
+                result = await target.servicePortChange(data.portInfo.service, data.port.toString());
+                await target.addLog(log);
+                break;
+            }
             default:
                 return res.status(400).json({ status: "error", error: `Unknown Event ${body.event}` });
                 break;

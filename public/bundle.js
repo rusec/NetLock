@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.initRequestSchema = exports.applicationSchema = exports.applicationSpawnSchema = exports.userSchema = exports.userLoginSchema = exports.networkInterfaceSchema = exports.initSchema = void 0;
+exports.initRequestSchema = exports.applicationSchema = exports.ServiceSchema = exports.portSchema = exports.applicationSpawnSchema = exports.userSchema = exports.userLoginSchema = exports.networkInterfaceSchema = exports.initSchema = void 0;
 const joi_1 = __importDefault(__webpack_require__(/*! joi */ "./node_modules/joi/dist/joi-browser.min.js"));
 exports.initSchema = joi_1.default.object({
     os: joi_1.default.object({
@@ -114,6 +114,26 @@ exports.applicationSpawnSchema = joi_1.default.object({
 })
     .keys()
     .unknown(true);
+exports.portSchema = joi_1.default.object({
+    protocol: joi_1.default.string(),
+    localAddress: joi_1.default.string()
+        .ip({ version: ["ipv4", "ipv6"] })
+        .required(),
+    localPort: joi_1.default.string().required(),
+    peerAddress: joi_1.default.string()
+        .ip({ version: ["ipv4", "ipv6"] })
+        .optional(),
+    peerPort: joi_1.default.string().optional(),
+    state: joi_1.default.string(),
+    pid: joi_1.default.number().optional(),
+    process: joi_1.default.string().allow(""),
+})
+    .keys()
+    .unknown(true);
+exports.ServiceSchema = joi_1.default.object({
+    port: exports.portSchema,
+    service: exports.applicationSpawnSchema.optional(),
+});
 exports.applicationSchema = joi_1.default.object({
     name: joi_1.default.string().required(),
     running: joi_1.default.boolean().required(),
@@ -140,7 +160,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.eventSchema = exports.UserEvent = exports.NetworkEvent = exports.KernelEvent = exports.RegEditEvent = exports.ProcessEvent = exports.FileEvent = void 0;
+exports.eventSchema = exports.UserEvent = exports.NetworkInterfaceEvent = exports.PortEvent = exports.KernelEvent = exports.RegEditEvent = exports.ProcessEvent = exports.FileEvent = void 0;
 const joi_1 = __importDefault(__webpack_require__(/*! joi */ "./node_modules/joi/dist/joi-browser.min.js"));
 const schemas_1 = __webpack_require__(/*! ../Beacon/schemas */ "./lib/dist/Beacon/schemas.js");
 var FileEvent;
@@ -206,8 +226,24 @@ var KernelEvent;
         path: joi_1.default.string(),
     });
 })(KernelEvent || (exports.KernelEvent = KernelEvent = {}));
-var NetworkEvent;
-(function (NetworkEvent) {
+var PortEvent;
+(function (PortEvent) {
+    let Types;
+    (function (Types) {
+        Types["PortClosed"] = "portClosed";
+        Types["PortOpened"] = "portOpened";
+        Types["PortServiceChange"] = "portServiceChanged";
+    })(Types = PortEvent.Types || (PortEvent.Types = {}));
+    PortEvent.portEventSchema = joi_1.default.object({
+        event: joi_1.default.string().valid(PortEvent.Types.PortClosed, PortEvent.Types.PortOpened, PortEvent.Types.PortServiceChange),
+        serviceName: joi_1.default.string().allow(""),
+        portNumber: joi_1.default.number(),
+        portInfo: schemas_1.ServiceSchema,
+        service: joi_1.default.string().allow(""),
+    });
+})(PortEvent || (exports.PortEvent = PortEvent = {}));
+var NetworkInterfaceEvent;
+(function (NetworkInterfaceEvent) {
     let Types;
     (function (Types) {
         Types["InterfaceDown"] = "interfaceDown";
@@ -215,9 +251,9 @@ var NetworkEvent;
         Types["InterfaceCreated"] = "interfaceCreated";
         Types["InterfaceDeleted"] = "interfaceDeleted";
         Types["InterfaceIpChange"] = "interfaceIpChange";
-    })(Types = NetworkEvent.Types || (NetworkEvent.Types = {}));
-    NetworkEvent.networkEventSchema = joi_1.default.object({
-        event: joi_1.default.string().valid(NetworkEvent.Types.InterfaceDown, NetworkEvent.Types.InterfaceUp, NetworkEvent.Types.InterfaceCreated, NetworkEvent.Types.InterfaceDeleted, NetworkEvent.Types.InterfaceIpChange),
+    })(Types = NetworkInterfaceEvent.Types || (NetworkInterfaceEvent.Types = {}));
+    NetworkInterfaceEvent.networkEventSchema = joi_1.default.object({
+        event: joi_1.default.string().valid(NetworkInterfaceEvent.Types.InterfaceDown, NetworkInterfaceEvent.Types.InterfaceUp, NetworkInterfaceEvent.Types.InterfaceCreated, NetworkInterfaceEvent.Types.InterfaceDeleted, NetworkInterfaceEvent.Types.InterfaceIpChange),
         user: joi_1.default.string().allow(null),
         description: joi_1.default.string(),
         mac: joi_1.default.string(),
@@ -227,7 +263,7 @@ var NetworkEvent;
         subnet: joi_1.default.string(),
         descriptor: schemas_1.networkInterfaceSchema,
     });
-})(NetworkEvent || (exports.NetworkEvent = NetworkEvent = {}));
+})(NetworkInterfaceEvent || (exports.NetworkInterfaceEvent = NetworkInterfaceEvent = {}));
 var UserEvent;
 (function (UserEvent) {
     let Types;
@@ -246,7 +282,7 @@ var UserEvent;
         userLogin: schemas_1.userLoginSchema,
     });
 })(UserEvent || (exports.UserEvent = UserEvent = {}));
-exports.eventSchema = joi_1.default.alternatives().try(ProcessEvent.processEventSchema, UserEvent.userEventSchema, NetworkEvent.networkEventSchema, RegEditEvent.regEditEventSchema, FileEvent.fileEventSchema, KernelEvent.kernelEventSchema);
+exports.eventSchema = joi_1.default.alternatives().try(ProcessEvent.processEventSchema, UserEvent.userEventSchema, NetworkInterfaceEvent.networkEventSchema, RegEditEvent.regEditEventSchema, FileEvent.fileEventSchema, KernelEvent.kernelEventSchema, PortEvent.portEventSchema);
 
 
 /***/ }),
@@ -47698,8 +47734,8 @@ function Target({ target, fillContainer }) {
                 react_1.default.createElement("span", { className: "mr-1" }, "Users:"),
                 react_1.default.createElement("div", { className: "flex items-center gap-2 flex-wrap" }, target.users.map((user) => (react_1.default.createElement("span", { key: user.name, className: `px-2 py-1 rounded ${user.loggedIn ? "bg-green-200 text-green-800" : "bg-gray-200 text-gray-600"}`, title: `${user.loggedIn ? "Logged in" : "Logged out"}` }, user.name))))),
             react_1.default.createElement("div", null,
-                react_1.default.createElement("span", { className: "mr-1" }, "Apps:"),
-                react_1.default.createElement("div", { className: "flex items-center gap-1 flex-wrap text-xs" }, target.apps.map((app) => (react_1.default.createElement("span", { key: app.name, className: `px-1 py-1 rounded ${app.running ? "bg-blue-200 text-blue-800" : "bg-gray-200 text-gray-600"}`, title: `${app.running ? "State: running\n" + `Path: ${app?.spawns[0]?.command || "unknown"}` : "State: stopped"}` }, app.name))))))));
+                react_1.default.createElement("span", { className: "mr-1" }, "Service:"),
+                react_1.default.createElement("div", { className: "flex items-center gap-1 flex-wrap text-xs" }, target.services.map((service) => (react_1.default.createElement("span", { key: service.port.localPort, className: `px-1 py-1 rounded ${"bg-blue-200 text-blue-800"}`, title: `${JSON.stringify(service, null, 4)}` }, `${service.service?.name} ${service.port.localAddress}:${service.port.localPort}`))))))));
 }
 
 
@@ -48315,11 +48351,11 @@ const StreamProvider = ({ setAlert, setLoading, children }) => {
         Events_1.RegEditEvent.Types.RegEdit,
         Events_1.KernelEvent.Types.Config,
         Events_1.KernelEvent.Types.Kernel,
-        Events_1.NetworkEvent.Types.InterfaceCreated,
-        Events_1.NetworkEvent.Types.InterfaceDeleted,
-        Events_1.NetworkEvent.Types.InterfaceDown,
-        Events_1.NetworkEvent.Types.InterfaceIpChange,
-        Events_1.NetworkEvent.Types.InterfaceUp,
+        Events_1.NetworkInterfaceEvent.Types.InterfaceCreated,
+        Events_1.NetworkInterfaceEvent.Types.InterfaceDeleted,
+        Events_1.NetworkInterfaceEvent.Types.InterfaceDown,
+        Events_1.NetworkInterfaceEvent.Types.InterfaceIpChange,
+        Events_1.NetworkInterfaceEvent.Types.InterfaceUp,
         Events_1.UserEvent.Types.UserCreated,
         Events_1.UserEvent.Types.UserDeleted,
         Events_1.UserEvent.Types.UserGroupChange,

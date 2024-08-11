@@ -35,6 +35,7 @@ class BeaconData {
     private _networkKey: string;
     private _userKey: string;
     private _applicationKey: string;
+    private _serviceKey: string;
     private _network: AbstractSublevel<
         AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
         string | Buffer | Uint8Array,
@@ -53,6 +54,12 @@ class BeaconData {
         string,
         Beacon.user
     >;
+    private _services: AbstractSublevel<
+        AbstractSublevel<Level<string, Beacon.document>, string | Buffer | Uint8Array, string, Beacon.document>,
+        string | Buffer | Uint8Array,
+        string,
+        Beacon.service
+    >;
 
     constructor(
         data: Beacon.document,
@@ -63,14 +70,54 @@ class BeaconData {
         this.db = db;
         this.id = id;
         this._logKey = `${id}_logs`;
-        this._networkKey = `${id}_interfaces`;
+        this._networkKey = `${id}_interface`;
         this._userKey = `${id}_user`;
         this._applicationKey = `${id}_application`;
+        this._serviceKey = `${id}_service`;
         this._logs = this.db.sublevel(this._logKey, { valueEncoding: "json" });
         this._network = this.db.sublevel(this._networkKey, { valueEncoding: "json" });
         this._applications = this.db.sublevel(this._applicationKey, { valueEncoding: "json" });
         this._users = this.db.sublevel(this._userKey, { valueEncoding: "json" });
+        this._services = this.db.sublevel(this._serviceKey, { valueEncoding: "json" });
     }
+    // Adds a port when a port is opened with a process
+    async addPortService(port: Beacon.service) {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+        let portKey = port.port.localPort;
+        let service = await this._services.get(port.port.localPort).catch(() => undefined);
+        if (service) return new API.DbTargetError(this.data.hostname, `Port service already added`);
+
+        await this._services.put(portKey, port).catch(() => undefined);
+        this._updateData();
+        return true;
+    }
+    // Delete a port when its closed
+    async delPortService(port: string) {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+
+        let service = await this._services.get(port).catch(() => undefined);
+        if (!service) return new API.DbTargetError(this.data.hostname, `Unable to find Port Service`);
+
+        await this._services.del(port).catch(() => undefined);
+        this._updateData();
+        return true;
+    }
+    async servicePortChange(app: Beacon.applicationSpawn, port: string) {
+        let result = await this._getCurrData();
+        if (result instanceof API.DbTargetError) return result;
+
+        let service = await this._services.get(port).catch(() => undefined);
+        if (!service) return new API.DbTargetError(this.data.hostname, `Unable to find Port Service`);
+
+        service.service = app;
+
+        await this._services.put(port, service).catch(() => undefined);
+        this._updateData();
+        return true;
+    }
+
     // Update Last ping
     async updateLastPing() {
         this.data.lastPing = new Date().getDate();
@@ -91,7 +138,11 @@ class BeaconData {
         for await (const user of this._users.values()) {
             users.push(user);
         }
-        let data: Beacon.Data = { ...this.data, apps, networkInterfaces, users };
+        let services: Beacon.service[] = [];
+        for await (const service of this._services.values()) {
+            services.push(service);
+        }
+        let data: Beacon.Data = { ...this.data, apps, networkInterfaces, users, services };
         return data;
     }
 
@@ -401,7 +452,7 @@ class DataBase {
 
         // Need to standardize input here. some values are needed for the rest of the code but not for initial setup
         let target: Beacon.document = { ...data, id: id, dateAdded: new Date().getTime(), lastPing: new Date().getTime() };
-        databaseEventEmitter.emit("target", { ...target, apps: [], networkInterfaces: [], users: [] });
+        databaseEventEmitter.emit("target", { ...target, apps: [], networkInterfaces: [], users: [], services: [] });
 
         await this.targets.put(id, target).catch((err) => console.log(err));
         return id;
@@ -432,7 +483,14 @@ class DataBase {
         let data: Beacon.Data[] = [];
         for await (const [key, value] of this.targets.iterator()) {
             // Figure out a better way to store these because levelDb returns sublevel keys too
-            if (key.includes("_logs") || key.includes("_application") || key.includes("_user") || key.includes("_interfaces")) continue;
+            if (
+                key.includes("_logs") ||
+                key.includes("_application") ||
+                key.includes("_user") ||
+                key.includes("_interface") ||
+                key.includes("_service")
+            )
+                continue;
 
             let beacon = new BeaconData(value, key, this.targets);
             let d = await beacon.getData();

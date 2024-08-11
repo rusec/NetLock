@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, SetStateAction, Dispatch } from "react";
 import { useAuth } from "./AuthProvider";
-import { EventTypes, FileEvent, KernelEvent, LogEvent, NetworkEvent, ProcessEvent, RegEditEvent, UserEvent } from "netlocklib/dist/Events";
+import { EventTypes, FileEvent, KernelEvent, LogEvent, NetworkInterfaceEvent, ProcessEvent, RegEditEvent, UserEvent } from "netlocklib/dist/Events";
 import { alert } from "../components/models/Alert";
 import { Beacon } from "netlocklib/dist/Beacon";
 
@@ -59,11 +59,11 @@ export const StreamProvider = ({ setAlert, setLoading, children }: Props) => {
         RegEditEvent.Types.RegEdit,
         KernelEvent.Types.Config,
         KernelEvent.Types.Kernel,
-        NetworkEvent.Types.InterfaceCreated,
-        NetworkEvent.Types.InterfaceDeleted,
-        NetworkEvent.Types.InterfaceDown,
-        NetworkEvent.Types.InterfaceIpChange,
-        NetworkEvent.Types.InterfaceUp,
+        NetworkInterfaceEvent.Types.InterfaceCreated,
+        NetworkInterfaceEvent.Types.InterfaceDeleted,
+        NetworkInterfaceEvent.Types.InterfaceDown,
+        NetworkInterfaceEvent.Types.InterfaceIpChange,
+        NetworkInterfaceEvent.Types.InterfaceUp,
         UserEvent.Types.UserCreated,
         UserEvent.Types.UserDeleted,
         UserEvent.Types.UserGroupChange,

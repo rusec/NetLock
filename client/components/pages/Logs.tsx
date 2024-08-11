@@ -41,7 +41,7 @@ function Logs({}: Props) {
     return (
         <div className="pr-7 px-7 pb-7">
             <div className="p-2 bg-base-300 flex">
-                <div className="p-2 w-1/2">
+                <div className="p-2 w-4/5">
                     <div className="flex relative">
                         <div className="card-title">Logs</div>
                         <div className="ml-auto">
@@ -86,7 +86,7 @@ function Logs({}: Props) {
                             </div>
                         </div>
                     </div>
-                    <div className="overflow-y-auto max-h-[30rem]">
+                    <div className="overflow-y-auto max-h-[70vh]">
                         <table className="table w-full table-pin-rows">
                             <thead>
                                 <tr className="bg-base-200 text-white">

@@ -70,13 +70,13 @@ export class Beacon {
         });
     }
     static async getNetworkConnections() {
-        return new Promise<Beacon.service | Beacon.service[]>((resolve) => {
+        return new Promise<Beacon.service[]>((resolve) => {
             system.networkConnections((d) => {
                 system.processes((p) => {
                     let processed = d.map((v) => {
                         let pid = v.pid;
                         let pro = p.list.find((val) => val.pid == pid);
-                        return { service: pro, port: v };
+                        return { service: pro, port: v } as Beacon.service;
                     });
                     resolve(processed);
                 });
@@ -92,7 +92,7 @@ export class Beacon {
                         .map((v) => {
                             let pid = v.pid;
                             let pro = p.list.find((val) => val.pid == pid);
-                            return { service: pro, port: v };
+                            return { service: pro, port: v } as Beacon.service;
                         });
                     resolve(processed);
                 });
@@ -496,6 +496,7 @@ export namespace Beacon {
         state: string;
         pid: number;
         process?: string;
+        [key: string]: any;
     }
     export interface service {
         service: applicationSpawn | undefined;
@@ -548,6 +549,7 @@ export namespace Beacon {
         command?: string;
         params?: string;
         path?: string;
+        [key: string]: any;
     }
     // Database entry for an application when an instance of an application is spawned its added to the spawns
     export interface application {

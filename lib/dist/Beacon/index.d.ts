@@ -25,7 +25,7 @@ export declare class Beacon {
     static getMem(): Promise<Systeminformation.MemData>;
     static getProcesses(): Promise<Systeminformation.ProcessesProcessData[]>;
     static getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]>;
-    static getNetworkConnections(): Promise<Beacon.service | Beacon.service[]>;
+    static getNetworkConnections(): Promise<Beacon.service[]>;
     static getNetworkListening(): Promise<Beacon.service[]>;
     static getUsers(): Promise<Systeminformation.UserData[]>;
     sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[], services: Beacon.service[]): Promise<void>;
@@ -121,6 +121,7 @@ export declare namespace Beacon {
         state: string;
         pid: number;
         process?: string;
+        [key: string]: any;
     }
     interface service {
         service: applicationSpawn | undefined;
@@ -167,6 +168,7 @@ export declare namespace Beacon {
         command?: string;
         params?: string;
         path?: string;
+        [key: string]: any;
     }
     interface application {
         name: string;

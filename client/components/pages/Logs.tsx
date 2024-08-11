@@ -1,43 +1,41 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useStream } from "../../hooks/StreamProvider";
 import { convertDateToHumanReadable } from "../../utils/time";
 
 type Props = {};
 
-function Logs({}: Props) {
-    const { logs, lastLogUpdatedID, allEventTypes, getTargetsByIdAndName, getTargetNameByID } = useStream();
+const Logs: React.FC<Props> = () => {
+    const { logs, allEventTypes, getTargetsByIdAndName, getTargetNameByID } = useStream();
+    const [targetSelected, setTargetSelected] = useState<string>("");
+    const [eventSelected, setEventSelected] = useState<string>("");
+    const [dateOrder, setDateOrder] = useState<"Up" | "Down">("Up");
+    const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
 
-    const [TargetSelected, setTargetSelected] = useState<string>("");
-    const [EventSelected, setEventSelected] = useState<string>("");
-    const [DateUp, setDateUp] = useState<"Up" | "Down">("Up");
-    const [DisplayedLogs, setDisplayedLogs] = useState(logs);
-    useEffect(() => {
+    const displayedLogs = useMemo(() => {
         let filteredLogs = logs;
 
-        if (TargetSelected != "") {
-            if (Array.isArray(TargetSelected)) filteredLogs = filteredLogs.filter((log) => TargetSelected.includes(log.targetId));
-            else filteredLogs = filteredLogs.filter((log) => log.targetId === TargetSelected);
+        if (targetSelected) {
+            filteredLogs = filteredLogs.filter((log) => log.targetId === targetSelected);
         }
 
-        if (EventSelected != "") {
-            if (Array.isArray(EventSelected)) filteredLogs = filteredLogs.filter((log) => EventSelected.includes(log.event));
-            else filteredLogs = filteredLogs.filter((log) => log.event === EventSelected);
+        if (eventSelected) {
+            filteredLogs = filteredLogs.filter((log) => log.event === eventSelected);
         }
 
-        filteredLogs.sort((a, b) => (DateUp == "Up" ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
-        setDisplayedLogs(filteredLogs);
-    }, [DateUp, logs, TargetSelected, EventSelected]);
+        filteredLogs.sort((a, b) => (dateOrder === "Up" ? a.timestamp - b.timestamp : b.timestamp - a.timestamp));
+        return filteredLogs;
+    }, [logs, targetSelected, eventSelected, dateOrder]);
 
     const parseStats = () => {
         const amountOfUrgent = logs.reduce((prev, v) => (v.urgent ? prev + 1 : prev), 0);
-        return { amountOfUrgent: amountOfUrgent };
+        return { amountOfUrgent };
     };
     const info = parseStats();
-    const [selectedLogIndex, setSelectedLogIndex] = useState<number | null>(null);
 
     const handleRowClick = (index: number | null) => {
         setSelectedLogIndex(selectedLogIndex === index ? null : index);
     };
+
     return (
         <div className="pr-7 px-7 pb-7">
             <div className="p-2 bg-base-300 flex">
@@ -45,41 +43,35 @@ function Logs({}: Props) {
                     <div className="flex relative">
                         <div className="card-title">Logs</div>
                         <div className="ml-auto">
-                            <div
-                                onClick={() => {
-                                    setDateUp(DateUp == "Up" ? "Down" : "Up");
-                                }}
-                                role="button"
-                                className="btn m-1"
-                            >
-                                {DateUp == "Up" ? "Recent" : "Old"}
-                            </div>
+                            <button onClick={() => setDateOrder(dateOrder === "Up" ? "Down" : "Up")} className="btn m-1">
+                                {dateOrder === "Up" ? "Recent" : "Old"}
+                            </button>
                             <div className="dropdown dropdown-end">
-                                <div tabIndex={0} role="button" className="btn m-1">
+                                <button tabIndex={0} className="btn m-1">
                                     Filter Event
-                                </div>
+                                </button>
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[2] w-52 p-2 shadow">
                                     <li>
                                         <a onClick={() => setEventSelected("")}>All</a>
                                     </li>
-                                    {allEventTypes.map((v) => (
-                                        <li>
-                                            <a onClick={() => setEventSelected(v)}>{v}</a>
+                                    {allEventTypes.map((eventType) => (
+                                        <li key={eventType}>
+                                            <a onClick={() => setEventSelected(eventType)}>{eventType}</a>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                             <div className="dropdown dropdown-end">
-                                <div tabIndex={0} role="button" className="btn m-1">
+                                <button tabIndex={0} className="btn m-1">
                                     Filter Target
-                                </div>
+                                </button>
                                 <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-[2] w-52 p-2 shadow">
                                     <li>
                                         <a onClick={() => setTargetSelected("")}>All</a>
                                     </li>
-                                    {getTargetsByIdAndName().map((v) => (
-                                        <li>
-                                            <a onClick={() => setTargetSelected(v.id)}>{v.name}</a>
+                                    {getTargetsByIdAndName().map((target) => (
+                                        <li key={target.id}>
+                                            <a onClick={() => setTargetSelected(target.id)}>{target.name}</a>
                                         </li>
                                     ))}
                                 </ul>
@@ -99,13 +91,9 @@ function Logs({}: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {DisplayedLogs.map((log, index) => (
-                                    <>
-                                        <tr
-                                            key={index}
-                                            className="hover:bg-neutral hover:text-white cursor-pointer"
-                                            onClick={() => handleRowClick(index)}
-                                        >
+                                {displayedLogs.map((log, index) => (
+                                    <React.Fragment key={index}>
+                                        <tr className="hover:bg-neutral hover:text-white cursor-pointer" onClick={() => handleRowClick(index)}>
                                             <th>{index + 1}</th>
                                             <td>{convertDateToHumanReadable(log.timestamp)}</td>
                                             <td>{log.event.toUpperCase()}</td>
@@ -114,13 +102,13 @@ function Logs({}: Props) {
                                             <td>{log.urgent ? "Yes" : "No"}</td>
                                         </tr>
                                         {selectedLogIndex === index && (
-                                            <tr key={`${index}-details`} className="bg-base-100">
+                                            <tr className="bg-base-100">
                                                 <td colSpan={6}>
                                                     <pre className="whitespace-pre-wrap p-4">{JSON.stringify(log, null, 2)}</pre>
                                                 </td>
                                             </tr>
                                         )}
-                                    </>
+                                    </React.Fragment>
                                 ))}
                             </tbody>
                         </table>
@@ -128,7 +116,7 @@ function Logs({}: Props) {
                 </div>
 
                 <div className="p-4">
-                    <div className="stats-container flex flex-wrap gap-4 justify-center p-4 ">
+                    <div className="stats-container flex flex-wrap gap-4 justify-center p-4">
                         <div className="stats shadow">
                             <div className="stat">
                                 <div className="stat-title">Logs</div>
@@ -148,6 +136,6 @@ function Logs({}: Props) {
             </div>
         </div>
     );
-}
+};
 
 export default Logs;

@@ -214,7 +214,7 @@ router.get("/stream", authenticate, validateUser, async (req: Request, res: Resp
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Target'
+ *              $ref: '#/components/schemas/beaconData'
  *       401:
  *         description: Unauthorized.
  */
@@ -252,7 +252,7 @@ router.get("/data/all", authenticate, validateUser, async (req: Request, res: Re
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/Target'
+ *               $ref: '#/components/schemas/beaconData'
  *       400:
  *         description: Unable to find target.
  *       401:

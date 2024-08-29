@@ -9,17 +9,13 @@ import { UserRouter } from "./routes/user/user";
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 import crypto from "crypto";
-import { BeaconRouter } from "./routes/target/target";
+import { BeaconRouter } from "./routes/beacon/beacon";
 import args from "args";
 import { log } from "./utils/output/debug";
 import compression from "compression";
+import { version, description } from "../package.json";
 args.option("passphrase", "passphrase for ssl cert");
 const flags = args.parse(process.argv);
-
-if (!flags.passphrase) {
-    log("No passphrase", "error");
-    process.exit(1);
-}
 
 const app = express();
 // initializes Nonce for CSP
@@ -64,13 +60,13 @@ app.use(
 /**
  * Initializing swagger docs
  */
-const options = {
+const options: swaggerJSDoc.Options = {
     definition: {
         openapi: "3.1.0",
         info: {
             title: "NetLock",
-            version: "0.1.0",
-            description: "Locking the network one beacon at a time",
+            version: version,
+            description: description,
             license: {
                 name: "MIT",
                 url: "https://spdx.org/licenses/MIT.html",
@@ -78,7 +74,7 @@ const options = {
             contact: {
                 name: "RUSEC",
                 url: "https://logrocket.com",
-                email: "info@email.com",
+                email: "rusec@rusec.club",
             },
         },
         servers: [
@@ -88,18 +84,21 @@ const options = {
         ],
         securityDefinitions: {
             bearerAuth: {
-                type: "apiKey",
+                type: "http",
                 name: "Authorization",
                 scheme: "bearer",
+                bearerFormat: "JWT",
                 in: "header",
             },
         },
     },
-    apis: ["./dist/routes/**/*.js"],
+    apis: ["./dist/src/routes/**/*.js"],
 };
 
 const specs = swaggerJSDoc(options);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+if (process.env.DEVELOPMENT) {
+    app.use("/docs", swaggerUi.serve, swaggerUi.setup(specs));
+}
 
 //Useless function should delete
 app.get("/", (req: Request, res: Response, next: NextFunction): void => {

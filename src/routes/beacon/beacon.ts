@@ -21,6 +21,347 @@ import { applicationSchema, initRequestSchema, networkInterfaceSchema, ServiceSc
 let router = Router({
     caseSensitive: true,
 });
+
+// SCHEMAS FOR BEACONS
+// Beacon INIT
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     BeaconInit:
+ *       type: object
+ *       properties:
+ *         os:
+ *           type: object
+ *           properties:
+ *             platform:
+ *               type: string
+ *               description: The platform of the operating system.
+ *             distro:
+ *               type: string
+ *               description: The distribution of the operating system.
+ *             kernel:
+ *               type: string
+ *               description: The kernel version of the operating system.
+ *             arch:
+ *               type: string
+ *               description: The architecture of the operating system.
+ *             release:
+ *               type: string
+ *               description: The release version of the operating system.
+ *             codename:
+ *               type: string
+ *               description: The codename of the operating system.
+ *             fqdn:
+ *               type: string
+ *               description: The fully qualified domain name.
+ *             hypervisor:
+ *               type: boolean
+ *               description: Indicates if a hypervisor is present.
+ *               nullable: true
+ *             uefi:
+ *               type: boolean
+ *               description: Indicates if UEFI is supported.
+ *               nullable: true
+ *             logofile:
+ *               type: string
+ *               description: The logo file associated with the operating system.
+ *             build:
+ *               type: string
+ *               description: The build version of the operating system.
+ *             servicepack:
+ *               type: string
+ *               description: The service pack version of the operating system.
+ *         hardware:
+ *           type: object
+ *           properties:
+ *             cpu:
+ *               type: string
+ *               description: The CPU information.
+ *             mem:
+ *               type: string
+ *               description: The memory information.
+ *         hostname:
+ *           type: string
+ *           description: The hostname of the system.
+ */
+
+// Service
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     port:
+ *       type: object
+ *       properties:
+ *         protocol:
+ *           type: string
+ *           description: The protocol used by the port (e.g., TCP, UDP).
+ *         localAddress:
+ *           type: string
+ *           description: The local address of the port.
+ *         localPort:
+ *           type: string
+ *           description: The local port number.
+ *         peerAddress:
+ *           type: string
+ *           description: The peer address if available.
+ *           nullable: true
+ *         peerPort:
+ *           type: string
+ *           description: The peer port number if available.
+ *           nullable: true
+ *         state:
+ *           type: string
+ *           description: The current state of the port.
+ *         pid:
+ *           type: integer
+ *           description: The process ID associated with the port.
+ *         process:
+ *           type: string
+ *           description: The name of the process associated with the port.
+ *           nullable: true
+ *         additionalProperties:
+ *           type: object
+ *           description: Allows for additional properties not explicitly defined.
+ *     service:
+ *       type: object
+ *       properties:
+ *         service:
+ *           $ref: '#/components/schemas/applicationSpawn'
+ *           description: The application spawn associated with the service.
+ *           nullable: true
+ *         port:
+ *           $ref: '#/components/schemas/port'
+ *           description: The port information related to the service.
+ *     applicationSpawn:
+ *       type: object
+ *       properties:
+ *         pid:
+ *           type: integer
+ *           description: The process ID of the application.
+ *         parentPid:
+ *           type: integer
+ *           description: The parent process ID if available.
+ *           nullable: true
+ *         name:
+ *           type: string
+ *           description: The name of the application.
+ *         cpu:
+ *           type: number
+ *           format: float
+ *           description: The CPU usage of the application in percentage.
+ *           nullable: true
+ *         priority:
+ *           type: integer
+ *           description: The priority of the application.
+ *           nullable: true
+ *         started:
+ *           type: string
+ *           format: date-time
+ *           description: The start time of the application.
+ *           nullable: true
+ *         state:
+ *           type: string
+ *           description: The current state of the application.
+ *           nullable: true
+ *         tty:
+ *           type: string
+ *           description: The terminal type associated with the application.
+ *           nullable: true
+ *         user:
+ *           type: string
+ *           description: The user running the application.
+ *           nullable: true
+ *         command:
+ *           type: string
+ *           description: The command used to start the application.
+ *           nullable: true
+ *         params:
+ *           type: string
+ *           description: Parameters used for starting the application.
+ *           nullable: true
+ *         path:
+ *           type: string
+ *           description: The path of the application executable.
+ *           nullable: true
+ *         additionalProperties:
+ *           type: object
+ *           description: Allows for additional properties not explicitly defined.
+ */
+
+// Application
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     application:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the application.
+ *         running:
+ *           type: boolean
+ *           description: Indicates whether the application is currently running.
+ *         spawns:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/applicationSpawn'
+ *           description: List of application spawns associated with this application.
+ */
+
+// Network Interface
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     networkInterface:
+ *       type: object
+ *       properties:
+ *         iface:
+ *           type: string
+ *           description: The identifier of the network interface.
+ *         ifaceName:
+ *           type: string
+ *           description: The name of the network interface.
+ *         default:
+ *           type: boolean
+ *           description: Indicates if this interface is the default interface.
+ *         ip4:
+ *           type: string
+ *           description: The IPv4 address assigned to the interface.
+ *         ip4subnet:
+ *           type: string
+ *           description: The subnet mask for the IPv4 address.
+ *         ip6:
+ *           type: string
+ *           description: The IPv6 address assigned to the interface.
+ *         ip6subnet:
+ *           type: string
+ *           description: The subnet mask for the IPv6 address.
+ *         mac:
+ *           type: string
+ *           description: The MAC address of the network interface.
+ *         state:
+ *           type: string
+ *           enum:
+ *             - up
+ *             - down
+ *           description: The state of the network interface.
+ *         type:
+ *           type: string
+ *           description: The type of the network interface (e.g., ethernet, wifi).
+ *           nullable: true
+ *         speed:
+ *           type: number
+ *           format: float
+ *           description: The speed of the network interface in Mbps.
+ *           nullable: true
+ *         virtual:
+ *           type: boolean
+ *           description: Indicates if the network interface is virtual.
+ *           nullable: true
+ *         dhcp:
+ *           type: boolean
+ *           description: Indicates if the interface uses DHCP for IP address assignment.
+ *           nullable: true
+ *         additionalProperties:
+ *           type: object
+ *           description: Allows for additional properties not explicitly defined.
+ */
+
+// Users
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     userLogin:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the user who logged in.
+ *         tty:
+ *           type: string
+ *           description: The terminal type used for login.
+ *           nullable: true
+ *         date:
+ *           type: integer
+ *           description: The timestamp of the login event (Unix epoch time).
+ *         ip:
+ *           type: string
+ *           description: The IP address from which the user logged in.
+ *           nullable: true
+ *         command:
+ *           type: string
+ *           description: The command executed by the user at login.
+ *           nullable: true
+ *         additionalProperties:
+ *           type: object
+ *           description: Allows for additional properties not explicitly defined.
+ *     user:
+ *       type: object
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: The name of the user.
+ *         loggedIn:
+ *           type: boolean
+ *           description: Indicates whether the user is currently logged in.
+ *         lastUpdate:
+ *           type: integer
+ *           description: The timestamp of the last update (Unix epoch time).
+ *         logins:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/userLogin'
+ *           description: Array of login records associated with the user.
+ *         additionalProperties:
+ *           type: object
+ *           description: Allows for additional properties not explicitly defined.
+ */
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     beaconData:
+ *       type: object
+ *       properties:
+ *         id:
+ *          type: string
+ *          description: id used to identify beacon
+ *         dateAdded:
+ *          type: number
+ *          description: date which beacon was added
+ *         lastPing:
+ *          type: number
+ *          description: date which beacon was pinged
+ *         apps:
+ *           type: array
+ *           items:
+ *            $ref: '#/components/schemas/application'
+ *           description: List of applications on the beacon.
+ *         users:
+ *           type: array
+ *           items:
+ *            $ref:'#/components/schemas/user'
+ *           description: List of Users on the beacon.
+ *         networkInterfaces:
+ *           type: array
+ *           items:
+ *            $ref:'#/components/schemas/networkInterface'
+ *           description: List of network interfaces on the beacon.
+ *         services:
+ *           type: array
+ *           items:
+ *            $ref:'#/components/schemas/service'
+ *           description: List of network interfaces on the beacon.
+ */
+
 /**
  * @swagger
  * /api/beacon/register:
@@ -34,54 +375,7 @@ let router = Router({
  *       content:
  *         application/json:
  *           schema:
- *             type: object
- *             required:
- *               - hostname
- *               - os
- *               - interfaces
- *               - users
- *               - apps
- *             properties:
- *               hostname:
- *                 type: string
- *                 description: The hostname of the beacon.
- *               os:
- *                 type: string
- *                 description: The operating system of the beacon.
- *               interfaces:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     ip:
- *                       type: string
- *                       description: The IP address of the interface.
- *                     mac:
- *                       type: string
- *                       description: The MAC address of the interface.
- *                     state:
- *                       type: string
- *                       description: The state of the interface.
- *                       enum: [down, up]
- *               users:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       description: The name of the user.
- *               apps:
- *                 type: array
- *                 items:
- *                   type: object
- *                   properties:
- *                     name:
- *                       type: string
- *                       description: The name of the app.
- *                     version:
- *                       type: string
- *                       description: The version of the app.
+ *             $ref: '#/components/schemas/BeaconInit'
  *     responses:
  *       200:
  *         description: The beacon was successfully registered.
@@ -92,7 +386,7 @@ let router = Router({
  *               properties:
  *                 token:
  *                   type: string
- *                   description: The JWT token for the beacon.
+ *                   description: The JWT token for the beacon. To be used for all beacon requests
  *       400:
  *         description: Invalid request or unable to register beacon.
  *       401:
@@ -145,88 +439,100 @@ router.post(
 );
 /**
  * @swagger
- * components:
- *   schemas:
- *     TargetInterface:
- *       type: object
- *       properties:
- *         ip:
- *           type: string
- *           description: The IP address of the target interface.
- *         mac:
- *           type: string
- *           description: The MAC address of the target interface.
- *         state:
- *           type: string
- *           description: The state of the target interface.
- *           enum: [down, up]
- *         timestamp:
- *           type: integer
- *           description: The timestamp of the target interface.
- *     TargetUser:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           description: The name of the user.
- *         lastLogin:
- *           type: integer
- *           description: The last login time of the user.
- *         lastUpdate:
- *           type: integer
- *           description: The last update time of the user.
- *         loggedIn:
- *           type: boolean
- *           description: Whether the user is logged in.
- *     TargetApp:
- *       type: object
- *       properties:
- *         name:
- *           type: string
- *           description: The name of the app.
- *         running:
- *           type: boolean
- *           description: Whether the app is running.
- *         version:
- *           type: string
- *           description: The version of the app.
- *     Target:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           description: The ID of the target.
- *         hostname:
- *           type: string
- *           description: The hostname of the target.
- *         os:
- *           type: string
- *           description: The operating system of the target.
- *         active:
- *           type: boolean
- *           description: Whether the target is active.
- *         interfaces:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/TargetInterface'
- *           description: The interfaces of the target.
- *         users:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/TargetUser'
- *           description: The users of the target.
- *         apps:
- *           type: array
- *           items:
- *             $ref: '#/components/schemas/TargetApp'
- *           description: The apps of the target.
- *         lastPing:
- *           type: integer
- *           description: The last ping time of the target.
- *         dateAdded:
- *           type: integer
- *           description: The date the target was added.
+ * /api/beacon/add/service:
+ *   post:
+ *     summary: Add a service to a beacon.
+ *     description: Adds a new service to a specific beacon. This endpoint requires authentication and authorization. Used for initial request to limit json size.
+ *     tags:
+ *       - Beacons
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/service'
+ *           examples:
+ *             example:
+ *               value:
+ *                 service:
+ *                   pid: 1234
+ *                   parentPid: 5678
+ *                   name: my-service
+ *                   cpu: 15.5
+ *                   priority: 10
+ *                   started: '2024-08-28T12:34:56Z'
+ *                   state: running
+ *                   tty: tty1
+ *                   user: user1
+ *                   command: /usr/bin/my-service
+ *                   params: --verbose
+ *                   path: /usr/bin/my-service
+ *                 port:
+ *                   protocol: TCP
+ *                   localAddress: 192.168.1.2
+ *                   localPort: '8080'
+ *                   peerAddress: 192.168.1.3
+ *                   peerPort: '9090'
+ *                   state: LISTEN
+ *                   pid: 1234
+ *                   process: my-service
+ *     responses:
+ *       '200':
+ *         description: Successfully added the application process to the beacon.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Beacon Added Application
+ *       '400':
+ *         description: Bad request due to invalid input or client errors.
+ *         content:
+ *           application/json:
+ *             schema:
+
+ *               examples:
+ *                 invalidRequest:
+ *                   value:
+ *                     status: error
+ *                     message: Invalid request
+ *                     error: [details about validation error]
+ *                 targetNotFound:
+ *                   value:
+ *                     status: error
+ *                     error: Target Not Found
+ *       '401':
+ *         description: Unauthorized access. Authentication or authorization failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   status: error
+ *                   error: Unauthorized
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   status: error
+ *                   error: Internal Server Error
+ *     security:
+ *       - bearerAuth: []
+ *     x-auth-required: true
+ *     x-auth-roles:
+ *       - beacon
  */
+
 router.post(
     "/add/service",
     authenticate,
@@ -259,6 +565,94 @@ router.post(
         return res.status(200).json({ status: "success", message: "Beacon Added Application" });
     }
 );
+/**
+ * @swagger
+ * /api/beacon/add/app:
+ *   post:
+ *     summary: Add an application to a beacon.
+ *     description: Adds a new application to a specific beacon. This endpoint requires authentication and authorization. Used for initial request to limit json size.
+ *     tags:
+ *       - Beacons
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/application'
+ *           examples:
+ *             example:
+ *               value:
+ *                 name: my-app
+ *                 running: true
+ *                 spawns:
+ *                   - pid: 1234
+ *                     parentPid: 5678
+ *                     name: my-app-instance
+ *                     cpu: 12.5
+ *                     priority: 5
+ *                     started: '2024-08-28T12:34:56Z'
+ *                     state: running
+ *                     tty: tty1
+ *                     user: user1
+ *                     command: /usr/bin/my-app
+ *                     params: --verbose
+ *                     path: /usr/bin/my-app
+ *     responses:
+ *       '200':
+ *         description: Successfully added the application to the beacon.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Beacon Added Application
+ *       '400':
+ *         description: Bad request due to invalid input or client errors.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               examples:
+ *                 invalidRequest:
+ *                   value:
+ *                     status: error
+ *                     message: Invalid request
+ *                     error: [details about validation error]
+ *                 targetNotFound:
+ *                   value:
+ *                     status: error
+ *                     error: Target Not Found
+ *       '401':
+ *         description: Unauthorized access. Authentication or authorization failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   status: error
+ *                   error: Unauthorized
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   status: error
+ *                   error: Internal Server Error
+ *     security:
+ *       - bearerAuth: []
+ *     x-auth-required: true
+ *     x-auth-roles:
+ *       - beacon
+ */
+
 router.post(
     "/add/app",
     authenticate,
@@ -291,6 +685,93 @@ router.post(
         return res.status(200).json({ status: "success", message: "Beacon Added Application" });
     }
 );
+/**
+ * @swagger
+ * /api/beacon/add/interface:
+ *   post:
+ *     summary: Add a network interface to a beacon.
+ *     description: Adds a new network interface to a specific beacon. This endpoint requires authentication and authorization. Used for initial request to limit json size.
+ *     tags:
+ *       - Beacons
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/networkInterface'
+ *           examples:
+ *             example:
+ *               value:
+ *                 iface: eth0
+ *                 ifaceName: Ethernet0
+ *                 default: true
+ *                 ip4: 192.168.1.2
+ *                 ip4subnet: 255.255.255.0
+ *                 ip6: 2001:db8::1
+ *                 ip6subnet: 64
+ *                 mac: 00:1A:2B:3C:4D:5E
+ *                 state: up
+ *                 type: ethernet
+ *                 speed: 1000
+ *                 virtual: false
+ *                 dhcp: true
+ *     responses:
+ *       '200':
+ *         description: Successfully added the network interface to the beacon.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Beacon Added Network Interface
+ *       '400':
+ *         description: Bad request due to invalid input or client errors.
+ *         content:
+ *           application/json:
+ *             schema:
+
+ *               examples:
+ *                 invalidRequest:
+ *                   value:
+ *                     status: error
+ *                     message: Invalid request
+ *                     error: [details about validation error]
+ *                 targetNotFound:
+ *                   value:
+ *                     status: error
+ *                     error: Target Not Found
+ *       '401':
+ *         description: Unauthorized access. Authentication or authorization failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   status: error
+ *                   error: Unauthorized
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   status: error
+ *                   error: Internal Server Error
+ *     security:
+ *       - bearerAuth: []
+ *     x-auth-required: true
+ *     x-auth-roles:
+ *       - beacon
+ */
+
 router.post(
     "/add/interface",
     authenticate,
@@ -324,6 +805,89 @@ router.post(
         return res.status(200).json({ status: "success", message: "Beacon Added Network Interface" });
     }
 );
+/**
+ * @swagger
+ * /api/beacon/add/user:
+ *   post:
+ *     summary: Add a user to a beacon.
+ *     description: Adds a new user to a specific beacon. This endpoint requires authentication and authorization. Used for initial request to limit json size.
+ *     tags:
+ *       - Beacons
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/user'
+ *           examples:
+ *             example:
+ *               value:
+ *                 name: john_doe
+ *                 loggedIn: true
+ *                 lastUpdate: 1693238400
+ *                 logins:
+ *                   - name: john_doe
+ *                     tty: tty1
+ *                     date: 1693238400
+ *                     ip: 192.168.1.1
+ *                     command: login
+ *     responses:
+ *       '200':
+ *         description: Successfully added the user to the beacon.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Beacon Added User
+ *       '400':
+ *         description: Bad request due to invalid input or client errors.
+ *         content:
+ *           application/json:
+ *             schema:
+
+ *               examples:
+ *                 invalidRequest:
+ *                   value:
+ *                     status: error
+ *                     message: Invalid request
+ *                     error: [details about validation error]
+ *                 targetNotFound:
+ *                   value:
+ *                     status: error
+ *                     error: Target Not Found
+ *       '401':
+ *         description: Unauthorized access. Authentication or authorization failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   status: error
+ *                   error: Unauthorized
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   status: error
+ *                   error: Internal Server Error
+ *     security:
+ *       - bearerAuth: []
+ *     x-auth-required: true
+ *     x-auth-roles:
+ *       - beacon
+ */
+
 router.post(
     "/add/user",
     authenticate,
@@ -422,7 +986,7 @@ router.post(
  *            properties:
  *              event:
  *                type: string
- *                description: Type of event
+ *                description: Type of event. Please check Typescript definitions
  *                enum: [fileAccessed, fileCreated, fileDeleted, filePermission, config, interfaceDown, interfaceUp, interfaceIpChange, interfaceCreated, interfaceDeleted, kernel, processCreated, processEnded, regEdit, userCreated, userDeleted, userGroupChange, userLoggedIn, userLoggedOut]
  *              file:
  *                type: string
@@ -736,6 +1300,73 @@ router.post(
         return res.status(200).json({ status: "success", message: `event${body.event} Logged` });
     }
 );
+/**
+ * @swagger
+ * /api/beacon/:
+ *   delete:
+ *     summary: Delete a beacon.
+ *     description: Deletes a beacon from the database based on the client's ID. This endpoint requires authentication and authorization.
+ *     tags:
+ *       - Beacons
+ *     responses:
+ *       '200':
+ *         description: Successfully deleted the beacon.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Deleted {clientId}
+ *       '400':
+ *         description: Bad request due to invalid input or client errors.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               invalidRequest:
+ *                 value:
+ *                   status: error
+ *                   error: Invalid request
+ *               targetNotFound:
+ *                 value:
+ *                   status: error
+ *                   error: Target Not Found
+ *               deleteFailed:
+ *                 value:
+ *                   status: error
+ *                   error: Unable to delete
+ *       '401':
+ *         description: Unauthorized access. Authentication or authorization failed.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               unauthorized:
+ *                 value:
+ *                   status: error
+ *                   error: Unauthorized
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *             examples:
+ *               serverError:
+ *                 value:
+ *                   status: error
+ *                   error: Internal Server Error
+ *     security:
+ *       - bearerAuth: []
+ *     x-auth-required: true
+ *     x-auth-roles:
+ *       - beacon
+ */
+
 router.delete("/", authenticate, isBeacon, async (req: AuthenticatedRequest, res: Response<API.ErrorResponse | API.SuccessResponse>) => {
     // Error if client is unknown
     if (!req.client) return res.status(400).json({ status: "error", error: "Invalid request" });

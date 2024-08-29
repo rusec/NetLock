@@ -3,6 +3,7 @@ import crypto from "crypto";
 import { AuthenticatedRequest } from "./types/token";
 let beaconKey = "MindoverMatter";
 
+// Checks if its a beacon make the request, this is needed for separating users, beacons, and red team actors
 function isBeacon(req: Request, res: Response, next: NextFunction) {
     if (!req.headers.authorization) return res.status(401).json({ status: "unauthorized" });
     if ((req as AuthenticatedRequest).client) {

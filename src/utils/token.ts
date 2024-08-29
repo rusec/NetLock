@@ -22,6 +22,7 @@ let tokenUtils = {
     },
 };
 
+// Authenticates request and parses JWT
 async function authenticate(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     if (!req.headers.authorization && !req.query.token) return res.status(401).json({ status: "unauthorized" });
     const token = (req.headers.authorization as string) || (req.query.token as string);

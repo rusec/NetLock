@@ -5,6 +5,10 @@ NetLock is a siem/command control server that is meant to be deployed quickly an
 
 First time set up.
 
+```
+Using Node 18.20.4
+```
+
 ```sh
 npm install & npm install ./lib
 ```

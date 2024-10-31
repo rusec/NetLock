@@ -1,7 +1,7 @@
 import express, { NextFunction, Response, Router } from "express";
-import { AuthenticatedRequest, beaconToken } from "../../../utils/types/token";
+import { AuthenticatedRequest, beaconToken } from "../utils/types/token";
 import crypto from "crypto";
-import { log } from "../../../utils/output/debug";
+import { log } from "../utils/output/debug";
 // Checks if the request is from the same ip as when the beacon was registered
 function validateBeacon(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     if (!req.client) return res.status(401).json({ status: "Unauthorized" });

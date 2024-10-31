@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import crypto from "crypto";
-import { AuthenticatedRequest } from "./types/token";
+import { AuthenticatedRequest } from "../utils/types/token";
 let beaconKey = "MindoverMatter";
 
 // Checks if its a beacon make the request, this is needed for separating users, beacons, and red team actors

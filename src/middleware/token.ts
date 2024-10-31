@@ -1,6 +1,6 @@
 import express, { NextFunction, Request, Response } from "express";
 import * as jwt from "jsonwebtoken";
-import { AuthenticatedRequest, beaconToken, tokenInfo, userToken } from "./types/token";
+import { AuthenticatedRequest, beaconToken, tokenInfo, userToken } from "../utils/types/token";
 const secret = "secretKey";
 
 let tokenUtils = {

@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
-import { AuthenticatedRequest, beaconToken, userToken } from "../../../utils/types/token";
+import { AuthenticatedRequest, beaconToken, userToken } from "../utils/types/token";
 import crypto from "crypto";
-import { log } from "../../../utils/output/debug";
+import { log } from "../utils/output/debug";
 function validateUser(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     // Error if client is unknown
     if (!req.client) return res.status(401).json({ status: "Unauthorized" });

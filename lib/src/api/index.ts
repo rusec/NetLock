@@ -58,7 +58,7 @@ class Api {
     }
     async addService(service: Beacon.service, token: string) {
         try {
-            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/service"), service, {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/service"), service, {
                 headers: {
                     Authorization: token,
                 },
@@ -72,7 +72,7 @@ class Api {
     }
     async addUser(user: Beacon.user, token: string) {
         try {
-            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/user"), user, {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/user"), user, {
                 headers: {
                     Authorization: token,
                 },
@@ -86,7 +86,7 @@ class Api {
     }
     async addProcess(process: Beacon.application, token: string) {
         try {
-            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/app"), process, {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/app"), process, {
                 headers: {
                     Authorization: token,
                 },
@@ -100,7 +100,7 @@ class Api {
     }
     async addInterface(iface: Beacon.networkInterface, token: string) {
         try {
-            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/add/interface"), iface, {
+            let result = await axios.post<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/interface"), iface, {
                 headers: {
                     Authorization: token,
                 },
@@ -114,7 +114,7 @@ class Api {
     }
     async deleteTarget(token: string) {
         try {
-            let result = await axios.delete<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon/"), {
+            let result = await axios.delete<API.SuccessResponse | API.ErrorResponse>(this.endpoint("/api/beacon"), {
                 headers: {
                     Authorization: token,
                 },
@@ -141,21 +141,21 @@ class Api {
             throw e;
         }
     }
-    async initRequest(init: Beacon.initReq, token: string) {
-        try {
-            let { data } = await axios.post<API.SuccessResponse>(this.endpoint("/api/beacon/init"), init, {
-                headers: {
-                    Authorization: token,
-                },
-            });
+    // async initRequest(init: Beacon.initReq, token: string) {
+    //     try {
+    //         let { data } = await axios.post<API.SuccessResponse>(this.endpoint("/api/beacon/init"), init, {
+    //             headers: {
+    //                 Authorization: token,
+    //             },
+    //         });
 
-            return data;
-        } catch (error) {
-            let e = error as any;
-            if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
-            throw e;
-        }
-    }
+    //         return data;
+    //     } catch (error) {
+    //         let e = error as any;
+    //         if (e.response?.data) throw new Error(`API Error: ${JSON.stringify(e.response.data, null, 4)}`);
+    //         throw e;
+    //     }
+    // }
     async postEvent(event: Event, token: string) {
         try {
             let result = await axios.post<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>(

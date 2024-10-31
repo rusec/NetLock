@@ -10,7 +10,7 @@ export const GET = [authenticate, validateUser, async (req: Request, res: Respon
     if (!req.params.beacon) return res.status(400).json({ status: "error", error: "Unable to find target" });
 
     // Retrieve the beacon data from the database
-    let target = await db.getBeacon(req.params.target);
+    let target = await db.getBeacon(req.params.beacon);
 
     // Error if data is not found
     if (!target) return res.status(400).json({ status: "error", error: "Unable to find target" });

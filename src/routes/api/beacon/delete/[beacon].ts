@@ -6,10 +6,10 @@ import db from "../../../../db/db";
 
 export const DELETE = [ authenticate, validateUser, async (req: Request, res: Response<API.SuccessResponse | API.ErrorResponse>) => {
     // Error if target parameter is missing
-    if (!req.params.target) return res.status(400).json({ status: "error", error: "No target selected" });
+    if (!req.params.beacon) return res.status(400).json({ status: "error", error: "No target selected" });
 
     // Retrieve the target data from the database
-    let targetData = await db.getBeacon(req.params.target);
+    let targetData = await db.getBeacon(req.params.beacon);
 
     // Error if data is not found
     if (!targetData) return res.status(400).json({ status: "error", error: "Unable to find target" });

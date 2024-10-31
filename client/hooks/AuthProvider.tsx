@@ -22,7 +22,7 @@ const AuthProvider = ({ children }: any) => {
 
     const loginAction = async (data: { password: string }) => {
         try {
-            const response = await fetch("/api/user/login", {
+            const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -49,7 +49,7 @@ const AuthProvider = ({ children }: any) => {
     };
     const registerAction = async (data: { password: string }) => {
         try {
-            const response = await fetch("/api/user/register", {
+            const response = await fetch("/api/user", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

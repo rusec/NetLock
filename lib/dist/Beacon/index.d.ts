@@ -29,61 +29,61 @@ export declare class Beacon {
     static getNetworkListening(): Promise<Beacon.service[]>;
     static getUsers(): Promise<Systeminformation.UserData[]>;
     sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[], services: Beacon.service[]): Promise<void>;
-    addUser(username: string, loggedIn?: boolean): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    delUser(username: string): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    addUser(username: string, loggedIn?: boolean): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
+    delUser(username: string): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     /**
      * User is logged if they are active on the system,
      * once user is no longer seen on the system, they are assumed to be logged out
      */
-    loginUser(userLogin: Beacon.userLogin, loggedIn: boolean): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    groupChange(username: string, group: string): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    loginUser(userLogin: Beacon.userLogin, loggedIn: boolean): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
+    groupChange(username: string, group: string): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     fileAccessed(file: string, options: {
         username: string | undefined;
         permissions: string;
         path: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     fileCreated(file: string, options: {
         username: string | undefined;
         permissions: string;
         path: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     fileDeleted(file: string, options: {
         username: string | undefined;
         permissions: string;
         path: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     filePermissionsChange(file: string, options: {
         username: string | undefined;
         permissions: string;
         path: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     interfaceUp(descriptor: Beacon.networkInterface, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     interfaceDown(descriptor: Beacon.networkInterface, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     interfaceCreated(descriptor: Beacon.networkInterface, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     interfaceDeleted(descriptor: Beacon.networkInterface, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     interfaceIpChange(descriptor: Beacon.networkInterface, version: "4" | "6", options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    processCreated(process: Beacon.applicationSpawn): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    processEnded(process: Beacon.applicationSpawn): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
+    processCreated(process: Beacon.applicationSpawn): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
+    processEnded(process: Beacon.applicationSpawn): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     regEdit(key: string, value: string, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     kernel(file: string, path: string, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     config(file: string, path: string, options?: {
         username: string;
-    }): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
-    _sendEvent(event: Event): Promise<import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError | import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
+    }): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
+    _sendEvent(event: Event): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse | import("../api").API.DbTargetErrorResponse | import("../api").API.ValidationError>;
     delete(): Promise<import("../api").API.SuccessResponse | import("../api").API.ErrorResponse>;
 }
 export declare class TestBeacon extends Beacon {

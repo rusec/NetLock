@@ -48301,7 +48301,7 @@ const AuthProvider = ({ children }) => {
     const navigate = (0, react_router_dom_1.useNavigate)();
     const loginAction = async (data) => {
         try {
-            const response = await fetch("/api/user/login", {
+            const response = await fetch("/api/login", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -48328,7 +48328,7 @@ const AuthProvider = ({ children }) => {
     };
     const registerAction = async (data) => {
         try {
-            const response = await fetch("/api/user/register", {
+            const response = await fetch("/api/user", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -48471,7 +48471,7 @@ const StreamProvider = ({ setAlert, setLoading, children }) => {
     };
     const deleteTargetAction = async (data) => {
         try {
-            const response = await fetch("/api/user/targets/" + data, {
+            const response = await fetch("/api/beacon/delete/" + data, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -48490,10 +48490,10 @@ const StreamProvider = ({ setAlert, setLoading, children }) => {
         }
     };
     (0, react_1.useEffect)(() => {
-        const source = new EventSource("/api/user/stream" + `?token=${token}`);
+        const source = new EventSource("/api/data/stream" + `?token=${token}`);
         const init = async () => {
             setLoading(true);
-            const results = await fetch("/api/user/data/all", {
+            const results = await fetch("/api/data/all", {
                 headers: {
                     authorization: token,
                 },

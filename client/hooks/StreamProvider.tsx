@@ -90,7 +90,7 @@ export const StreamProvider = ({ setAlert, setLoading, children }: Props) => {
     };
     const deleteTargetAction = async (data: string) => {
         try {
-            const response = await fetch("/api/user/targets/" + data, {
+            const response = await fetch("/api/beacon/delete/" + data, {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json",
@@ -109,10 +109,10 @@ export const StreamProvider = ({ setAlert, setLoading, children }: Props) => {
     };
 
     useEffect(() => {
-        const source = new EventSource("/api/user/stream" + `?token=${token}`);
+        const source = new EventSource("/api/data/stream" + `?token=${token}`);
         const init = async () => {
             setLoading(true);
-            const results = await fetch("/api/user/data/all", {
+            const results = await fetch("/api/data/all", {
                 headers: {
                     authorization: token,
                 },

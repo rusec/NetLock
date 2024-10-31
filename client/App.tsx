@@ -12,7 +12,10 @@ function App() {
             <Router>
                 <AuthProvider>
                     <Routes>
-                        <Route path="/" element={<Navigate to="/login" />}></Route>
+                        <Route element={<PrivateRoute />}>
+                            <Route path="/" element={<Dashboard />}></Route>
+                        </Route>
+
                         <Route path="/login" element={<Login />} />
                         <Route path="/register" element={<Register />} />
 

@@ -37,7 +37,7 @@ const Logs: React.FC<Props> = () => {
     };
 
     return (
-        <div className="pr-7 px-7 pb-7">
+        <div className="pr-7 px-7 pb-7 min-h-screen">
             <div className="p-2 bg-base-300 flex">
                 <div className="p-2 w-4/5">
                     <div className="flex relative">

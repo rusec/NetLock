@@ -44,7 +44,7 @@ function Home({}: Props) {
 
     const info = parseHomeInfo();
     return (
-        <div className="px-7 pr-7 pb-7">
+        <div className="px-7 pr-7 pb-7 min-h-screen">
             <div className="bg-base-200 shadow">
                 <div className="flex">
                     <div className="stats-container flex flex-wrap gap-4 justify-center flex-1 p-4 ">

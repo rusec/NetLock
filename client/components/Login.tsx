@@ -1,5 +1,6 @@
 import React, { ChangeEvent, EventHandler, useState } from "react";
 import { useAuth } from "../hooks/AuthProvider";
+import { Link } from "react-router-dom";
 
 const Login = () => {
     const [input, setInput] = useState({
@@ -43,10 +44,15 @@ const Login = () => {
                 />
                 <div className="text-sm text-gray-500 mt-1">Your password should be more than 6 characters.</div>
             </div>
-
-            <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300">
-                Submit
-            </button>
+            <div className="flex gap-2 flex-grow">
+                <Link to="/register" />
+                <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300">
+                    Register
+                </button>
+                <button type="submit" className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300">
+                    Submit
+                </button>
+            </div>
         </form>
     );
 };

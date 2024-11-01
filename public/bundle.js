@@ -47329,6 +47329,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const react_1 = __importStar(__webpack_require__(/*! react */ "./node_modules/react/index.js"));
 const AuthProvider_1 = __webpack_require__(/*! ../hooks/AuthProvider */ "./client/hooks/AuthProvider.tsx");
+const react_router_dom_1 = __webpack_require__(/*! react-router-dom */ "./node_modules/react-router-dom/dist/index.js");
 const Login = () => {
     const [input, setInput] = (0, react_1.useState)({
         password: "",
@@ -47358,7 +47359,10 @@ const Login = () => {
             react_1.default.createElement("label", { htmlFor: "password", className: "sr-only" }, "Password:"),
             react_1.default.createElement("input", { type: "password", id: "password", placeholder: "Password", name: "password", onChange: handleInput, className: "w-full px-4 py-2 border rounded-md focus:outline-none focus:ring focus:border-blue-300" }),
             react_1.default.createElement("div", { className: "text-sm text-gray-500 mt-1" }, "Your password should be more than 6 characters.")),
-        react_1.default.createElement("button", { type: "submit", className: "w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300" }, "Submit")));
+        react_1.default.createElement("div", { className: "flex gap-2 flex-grow" },
+            react_1.default.createElement(react_router_dom_1.Link, { to: "/register" }),
+            react_1.default.createElement("button", { type: "submit", className: "w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300" }, "Register"),
+            react_1.default.createElement("button", { type: "submit", className: "w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600 transition duration-300" }, "Submit"))));
 };
 exports["default"] = Login;
 

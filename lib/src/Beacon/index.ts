@@ -4,6 +4,9 @@ import os from "os";
 import system, { Systeminformation } from "systeminformation";
 import * as schemas from "./schemas";
 export { schemas };
+import delay from "../utils/delay";
+import EventEmitter from "events";
+import { difference } from "../utils/difference";
 export namespace ProcessInfo {
     export type ProcessName = string;
     export namespace Windows {
@@ -18,21 +21,23 @@ export class Beacon {
     token: string | "Not Initialized";
     api: Api;
     hostname: string;
-    static processes: Systeminformation.ProcessesProcessData[];
-    static processedUpdatedAt: number;
+    static processes: Systeminformation.ProcessesProcessData[] = [];
+    static users: Systeminformation.UserData[];
+    static interfaces: Systeminformation.NetworkInterfacesData[];
+    static scanInterval: number;
+    static connections: Beacon.service[];
+    static listening: Beacon.service[];
     constructor(serverUrl: string) {
         this.token = "Not Initialized";
         this.api = new Api(serverUrl);
         this.hostname = "";
-        Beacon.processes = [];
-        Beacon.processedUpdatedAt = 0;
+        Beacon.scanInterval = 1000;
     }
     async requestToken(key: string) {
         this.hostname = os.hostname();
         let osInfo = await Beacon.getOS();
         let cpu = await Beacon.getCPU();
         let mem = await Beacon.getMem();
-        console.log(osInfo);
         let data: Beacon.Init = {
             os: osInfo,
             hostname: this.hostname,
@@ -44,6 +49,62 @@ export class Beacon {
         let result = await this.api.requestToken(key, data);
         this.token = result;
     }
+
+    static async start() {}
+    static async scanProcesses() {
+        let currentProcesses = await Beacon.getProcesses();
+        let [endedProcesses, createdProcesses] = difference<Systeminformation.ProcessesProcessData>(this.processes, currentProcesses);
+
+        // Log or handle ended and created processes
+        console.log("Ended Processes:", endedProcesses);
+        console.log("Created Processes:", createdProcesses);
+
+        // Update processes for the next scan
+        this.processes = [...currentProcesses];
+
+        await delay(this.scanInterval);
+        this.scanProcesses();
+    }
+
+    static async scanUsers() {
+        let currentUsers = await Beacon.getUsers();
+        let [userLoggedOut, usersLoggedIn] = difference<Systeminformation.UserData>(this.users, currentUsers);
+
+        this.users = [...currentUsers];
+
+        await delay(this.scanInterval);
+        this.scanUsers();
+    }
+    static async scanInterfaces() {
+        let currentInterfaces = await Beacon.getNetworkInterfaces();
+
+        let [oldInterfaces, newInterfaces] = difference<Systeminformation.NetworkInterfacesData>(this.interfaces, currentInterfaces);
+
+        this.interfaces = [...currentInterfaces];
+
+        await delay(this.scanInterval);
+
+        this.scanInterfaces();
+    }
+    static async scanConnections() {
+        let currentConnections = await Beacon.getNetworkConnections();
+
+        let [oldConnections, newConnections] = difference<Beacon.service>(this.connections, currentConnections);
+
+        this.connections = [...currentConnections];
+        await delay(this.scanInterval);
+        this.scanConnections();
+    }
+    static async scanListening() {
+        let currentListening = await Beacon.getNetworkListening();
+
+        let [oldListening, newListening] = difference<Beacon.service>(this.listening, currentListening);
+
+        this.listening = [...newListening];
+        await delay(this.scanInterval);
+        this.scanListening();
+    }
+
     static async getOS(): Promise<Systeminformation.OsData> {
         return new Promise<Systeminformation.OsData>((resolve) => {
             system.osInfo((d) => resolve(d));
@@ -64,9 +125,13 @@ export class Beacon {
             system.processes((d) => resolve(d.list));
         });
     }
-    static async getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]> {
-        return new Promise<Systeminformation.NetworkInterfacesData | Systeminformation.NetworkInterfacesData[]>((resolve) => {
-            system.networkInterfaces((d) => resolve(d));
+    static async getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData[]> {
+        return new Promise<Systeminformation.NetworkInterfacesData[]>((resolve) => {
+            system.networkInterfaces((d) => {
+                if (!(d instanceof Array)) {
+                    resolve([d]);
+                } else resolve(d);
+            });
         });
     }
     static async getNetworkConnections() {

@@ -1,5 +1,15 @@
+
 import Api from "../api";
-import { FileEvent, UserEvent, Event, NetworkInterfaceEvent, ProcessEvent, RegEditEvent, KernelEvent } from "../Events";
+import {exec, execSync} from 'child_process'
+import {
+    FileEvent,
+    UserEvent,
+    Event,
+    NetworkInterfaceEvent,
+    ProcessEvent,
+    RegEditEvent,
+    KernelEvent,
+} from "../Events";
 import os from "os";
 import system, { Systeminformation } from "systeminformation";
 import * as schemas from "./schemas";
@@ -7,6 +17,7 @@ export { schemas };
 import delay from "../utils/delay";
 import EventEmitter from "events";
 import { difference } from "../utils/difference";
+import { log } from "../utils/output";
 export namespace ProcessInfo {
     export type ProcessName = string;
     export namespace Windows {
@@ -21,17 +32,25 @@ export class Beacon {
     token: string | "Not Initialized";
     api: Api;
     hostname: string;
-    static processes: Systeminformation.ProcessesProcessData[] = [];
-    static users: Systeminformation.UserData[];
-    static interfaces: Systeminformation.NetworkInterfacesData[];
-    static scanInterval: number;
-    static connections: Beacon.service[];
-    static listening: Beacon.service[];
+    processes: Systeminformation.ProcessesProcessData[] = [];
+    users: Systeminformation.UserData[];
+    interfaces: Systeminformation.NetworkInterfacesData[];
+    scanInterval: number;
+    connections: Beacon.service[];
+    listening: Beacon.service[];
+    active: boolean;
+    ready:boolean;
     constructor(serverUrl: string) {
         this.token = "Not Initialized";
         this.api = new Api(serverUrl);
         this.hostname = "";
-        Beacon.scanInterval = 1000;
+        this.scanInterval = 1000;
+        this.users = [];
+        this.interfaces = [];
+        this.connections = [];
+        this.listening = [];
+        this.active = false;
+        this.ready = false
     }
     async requestToken(key: string) {
         this.hostname = os.hostname();
@@ -50,35 +69,104 @@ export class Beacon {
         this.token = result;
     }
 
-    static async start() {}
-    static async scanProcesses() {
-        let currentProcesses = await Beacon.getProcesses();
-        let [endedProcesses, createdProcesses] = difference<Systeminformation.ProcessesProcessData>(this.processes, currentProcesses);
+    async init() {
+        let ifaces = await Beacon.getNetworkInterfaces();
+        let users = (await Beacon.getAllUsers()).map((u) => {
+            let user: Beacon.user = {
+                lastUpdate: new Date().getTime(),
+                loggedIn: false,
+                logins: [],
+                name: u,
+            };
+            return user;
+        });
+        let apps = (await Beacon.getProcesses()).map((a) => {
+            let app: Beacon.application = {
+                name: a.name,
+                running: true,
+                spawns: [a],
+            };
+            return app;
+        });
+        let services = await Beacon.getNetworkListening();
+        let networkInterfaces: Beacon.networkInterface[];
 
-        // Log or handle ended and created processes
-        console.log("Ended Processes:", endedProcesses);
-        console.log("Created Processes:", createdProcesses);
+        networkInterfaces = ifaces.map((i) => {
+            return { ...i, state: i.operstate === "up" ? "up" : "down" };
+        });
+
+        await this.sendInit(users, networkInterfaces, apps, services);
+        this.ready =true
+    }
+
+    // Listening functions
+    async startListening() {
+        this.active = true
+        if(!this.ready) await this.init()
+        log(`Listening`, 'log')
+        this.scanProcesses()
+        this.scanUsers()
+    }
+    async stopListening() {
+        this.active = false;
+        log(`Listening Stopped`, 'log')
+
+    }
+
+    private async scanProcesses() {
+        if(!this.active) return
+        let currentProcesses = await Beacon.getProcesses();
+        let [endedProcesses, createdProcesses] =
+            difference<Systeminformation.ProcessesProcessData>(
+                this.processes,
+                currentProcesses
+            );
+
+        let eventPromises: Promise<any>[] = [
+            ...endedProcesses.map((p) => this.processEndedEvent(p)),
+            ...createdProcesses.map((p) => this.processCreatedEvent(p)),
+        ];
 
         // Update processes for the next scan
         this.processes = [...currentProcesses];
+
+        await Promise.allSettled(eventPromises);
 
         await delay(this.scanInterval);
         this.scanProcesses();
     }
 
-    static async scanUsers() {
+    private async scanUsers() {
+        if(!this.active) return
+
         let currentUsers = await Beacon.getUsers();
-        let [userLoggedOut, usersLoggedIn] = difference<Systeminformation.UserData>(this.users, currentUsers);
+
+        let [userLoggedOut, usersLoggedIn] =
+            difference<Systeminformation.UserData>(this.users, currentUsers);
+
+
+        // Need to implement when a new user is created which is not on the server 
+
+        let userEvents = [
+            ...userLoggedOut.map((u)=>this.loginUserEvent({...u, name:u.user, date: new Date(u.date).getTime()}, false)),
+            ...usersLoggedIn.map((u)=>this.loginUserEvent({...u, name:u.user, date: new Date(u.date).getTime()}, true))
+        ]
 
         this.users = [...currentUsers];
+        await Promise.allSettled(userEvents);
 
         await delay(this.scanInterval);
         this.scanUsers();
     }
-    static async scanInterfaces() {
+    private async scanInterfaces() {
         let currentInterfaces = await Beacon.getNetworkInterfaces();
 
-        let [oldInterfaces, newInterfaces] = difference<Systeminformation.NetworkInterfacesData>(this.interfaces, currentInterfaces);
+        let [oldInterfaces, newInterfaces] =
+            difference<Systeminformation.NetworkInterfacesData>(
+                this.interfaces,
+                currentInterfaces
+            );
+        
 
         this.interfaces = [...currentInterfaces];
 
@@ -86,25 +174,41 @@ export class Beacon {
 
         this.scanInterfaces();
     }
-    static async scanConnections() {
+    private async scanConnections() {
         let currentConnections = await Beacon.getNetworkConnections();
 
-        let [oldConnections, newConnections] = difference<Beacon.service>(this.connections, currentConnections);
+        let [oldConnections, newConnections] = difference<Beacon.service>(
+            this.connections,
+            currentConnections
+        );
+
+
+
+
+
 
         this.connections = [...currentConnections];
         await delay(this.scanInterval);
         this.scanConnections();
     }
-    static async scanListening() {
+    private async scanListening() {
         let currentListening = await Beacon.getNetworkListening();
 
-        let [oldListening, newListening] = difference<Beacon.service>(this.listening, currentListening);
+        let [oldListening, newListening] = difference<Beacon.service>(
+            this.listening,
+            currentListening
+        );
 
-        this.listening = [...newListening];
+        
+        
+
+
+        this.listening = [...currentListening];
         await delay(this.scanInterval);
         this.scanListening();
     }
 
+    // Getter functions
     static async getOS(): Promise<Systeminformation.OsData> {
         return new Promise<Systeminformation.OsData>((resolve) => {
             system.osInfo((d) => resolve(d));
@@ -120,19 +224,27 @@ export class Beacon {
             system.mem((d) => resolve(d));
         });
     }
-    static async getProcesses(): Promise<Systeminformation.ProcessesProcessData[]> {
-        return new Promise<Systeminformation.ProcessesProcessData[]>((resolve) => {
-            system.processes((d) => resolve(d.list));
-        });
+    static async getProcesses(): Promise<
+        Systeminformation.ProcessesProcessData[]
+    > {
+        return new Promise<Systeminformation.ProcessesProcessData[]>(
+            (resolve) => {
+                system.processes((d) => resolve(d.list));
+            }
+        );
     }
-    static async getNetworkInterfaces(): Promise<Systeminformation.NetworkInterfacesData[]> {
-        return new Promise<Systeminformation.NetworkInterfacesData[]>((resolve) => {
-            system.networkInterfaces((d) => {
-                if (!(d instanceof Array)) {
-                    resolve([d]);
-                } else resolve(d);
-            });
-        });
+    static async getNetworkInterfaces(): Promise<
+        Systeminformation.NetworkInterfacesData[]
+    > {
+        return new Promise<Systeminformation.NetworkInterfacesData[]>(
+            (resolve) => {
+                system.networkInterfaces((d) => {
+                    if (!(d instanceof Array)) {
+                        resolve([d]);
+                    } else resolve(d);
+                });
+            }
+        );
     }
     static async getNetworkConnections() {
         return new Promise<Beacon.service[]>((resolve) => {
@@ -153,7 +265,11 @@ export class Beacon {
             system.networkConnections((d) => {
                 system.processes((p) => {
                     let processed = d
-                        .filter((v) => v.state.toLowerCase() == "listening" || v.state.toLowerCase() == "listen")
+                        .filter(
+                            (v) =>
+                                v.state.toLowerCase() == "listening" ||
+                                v.state.toLowerCase() == "listen"
+                        )
                         .map((v) => {
                             let pid = v.pid;
                             let pro = p.list.find((val) => val.pid == pid);
@@ -169,8 +285,39 @@ export class Beacon {
             system.users((d) => resolve(d));
         });
     }
-    async sendInit(users: Beacon.user[], ifaces: Beacon.networkInterface[], apps: Beacon.application[], services: Beacon.service[]) {
-        if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
+    static async  getAllUsers(): Promise<string[]> {
+        let command: string;
+      
+        // Determine the platform
+        if (process.platform === 'win32') {
+          // Windows command to get users
+          command = 'powershell -Command "Get-LocalUser | Select-Object -ExpandProperty Name"';
+        } else if (process.platform === 'darwin') {
+          // macOS command to get users
+          command = 'dscl . list /Users';
+        } else {
+          // Linux command to get users
+          command = 'cut -d: -f1 /etc/passwd';
+        }
+        try {
+          const stdout  = execSync(command);
+          if(!stdout) throw new Error("No output")
+          const users = stdout.toString().split('\n').map((user:string) => user.trim()).filter((user:string) => user);
+          return users;
+        } catch (error) {
+            console.log(error)
+          console.error('Error fetching users:', error);
+          return [];
+        }
+      }
+    async sendInit(
+        users: Beacon.user[],
+        ifaces: Beacon.networkInterface[],
+        apps: Beacon.application[],
+        services: Beacon.service[]
+    ) {
+        if (this.token == "Not Initialized")
+            throw new Error("Beacon has not been Initialized");
 
         let initReq: Beacon.initReq = {
             apps: apps,
@@ -198,7 +345,7 @@ export class Beacon {
 
         return;
     }
-    async addUser(username: string, loggedIn?: boolean) {
+    async addUserEvent(username: string, loggedIn?: boolean) {
         let event: UserEvent.event = {
             description: "user created",
             event: UserEvent.Types.UserCreated,
@@ -213,7 +360,7 @@ export class Beacon {
         return await this._sendEvent(event);
     }
 
-    async delUser(username: string) {
+    async delUserEvent(username: string) {
         let event: UserEvent.event = {
             description: "user deleted",
             event: UserEvent.Types.UserDeleted,
@@ -230,17 +377,19 @@ export class Beacon {
      * User is logged if they are active on the system,
      * once user is no longer seen on the system, they are assumed to be logged out
      */
-    async loginUser(userLogin: Beacon.userLogin, loggedIn: boolean) {
+    async loginUserEvent(userLogin: Beacon.userLogin, loggedIn: boolean) {
         let event: UserEvent.event = {
             description: "user " + (userLogin ? "logged in" : "logged out"),
-            event: loggedIn ? UserEvent.Types.UserLoggedIn : UserEvent.Types.UserLoggedOut,
+            event: loggedIn
+                ? UserEvent.Types.UserLoggedIn
+                : UserEvent.Types.UserLoggedOut,
             loggedIn: loggedIn,
             user: userLogin.name,
             userLogin: userLogin,
         };
         return await this._sendEvent(event);
     }
-    async groupChange(username: string, group: string) {
+    async groupChangeEvent(username: string, group: string) {
         let event: UserEvent.event = {
             description: "user group change to" + group,
             event: UserEvent.Types.UserGroupChange,
@@ -253,7 +402,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async fileAccessed(
+    async fileAccessedEvent(
         file: string,
         options: {
             username: string | undefined;
@@ -272,7 +421,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async fileCreated(
+    async fileCreatedEvent(
         file: string,
         options: {
             username: string | undefined;
@@ -291,7 +440,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async fileDeleted(
+    async fileDeletedEvent(
         file: string,
         options: {
             username: string | undefined;
@@ -310,7 +459,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async filePermissionsChange(
+    async filePermissionsChangeEvent(
         file: string,
         options: {
             username: string | undefined;
@@ -329,7 +478,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async interfaceUp(
+    async interfaceUpEvent(
         descriptor: Beacon.networkInterface,
         options?: {
             username: string;
@@ -347,7 +496,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async interfaceDown(
+    async interfaceDownEvent(
         descriptor: Beacon.networkInterface,
         options?: {
             username: string;
@@ -365,7 +514,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async interfaceCreated(
+    async interfaceCreatedEvent(
         descriptor: Beacon.networkInterface,
         options?: {
             username: string;
@@ -383,7 +532,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async interfaceDeleted(
+    async interfaceDeletedEvent(
         descriptor: Beacon.networkInterface,
         options?: {
             username: string;
@@ -401,7 +550,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async interfaceIpChange(
+    async interfaceIpChangeEvent(
         descriptor: Beacon.networkInterface,
         version: "4" | "6",
         options?: {
@@ -413,7 +562,8 @@ export class Beacon {
         let event: NetworkInterfaceEvent.event = {
             description: `interface ${descriptor.iface} ${descriptor.mac} Ip Change by ${username}`,
             ip: version == "4" ? descriptor.ip4 : descriptor.ip6,
-            subnet: version == "4" ? descriptor.ip4subnet : descriptor.ip6subnet,
+            subnet:
+                version == "4" ? descriptor.ip4subnet : descriptor.ip6subnet,
             event: NetworkInterfaceEvent.Types.InterfaceIpChange,
             mac: descriptor.mac,
             version: version,
@@ -423,7 +573,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async processCreated(process: Beacon.applicationSpawn) {
+    async processCreatedEvent(process: Beacon.applicationSpawn) {
         let event: ProcessEvent.event = {
             description: `Process Created ${process.pid} ${process.name}`,
             event: ProcessEvent.Types.ProcessCreated,
@@ -433,7 +583,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async processEnded(process: Beacon.applicationSpawn) {
+    async processEndedEvent(process: Beacon.applicationSpawn) {
         let event: ProcessEvent.event = {
             description: `Process Ended ${process.pid} ${process.name}`,
             event: ProcessEvent.Types.ProcessEnded,
@@ -444,7 +594,7 @@ export class Beacon {
         return await this._sendEvent(event);
     }
 
-    async regEdit(
+    async regEditEvent(
         key: string,
         value: string,
         options?: {
@@ -461,7 +611,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async kernel(
+    async kernelEvent(
         file: string,
         path: string,
         options?: {
@@ -478,7 +628,7 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async config(
+    async configEvent(
         file: string,
         path: string,
         options?: {
@@ -495,13 +645,15 @@ export class Beacon {
         };
         return await this._sendEvent(event);
     }
-    async _sendEvent(event: Event) {
-        if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
+    private async _sendEvent(event: Event) {
+        if (this.token == "Not Initialized")
+            throw new Error("Beacon has not been Initialized");
         let result = await this.api.postEvent(event, this.token);
         return result;
     }
     async delete() {
-        if (this.token == "Not Initialized") throw new Error("Beacon has not been Initialized");
+        if (this.token == "Not Initialized")
+            throw new Error("Beacon has not been Initialized");
         let result = await this.api.deleteTarget(this.token);
         return result;
     }

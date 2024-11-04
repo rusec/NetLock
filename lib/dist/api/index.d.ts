@@ -46,7 +46,7 @@ declare class Api {
     addInterface(iface: Beacon.networkInterface, token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     deleteTarget(token: string): Promise<API.SuccessResponse | API.ErrorResponse>;
     requestToken(key: string, info: Beacon.Init): Promise<string>;
-    postEvent(event: Event, token: string): Promise<API.SuccessResponse | API.ErrorResponse | API.DbTargetErrorResponse | API.ValidationError>;
+    postEvent(event: Event, token: string): Promise<API.DbTargetErrorResponse | API.ValidationError | API.SuccessResponse | API.ErrorResponse>;
 }
 export default Api;
 //# sourceMappingURL=index.d.ts.map

@@ -34,69 +34,43 @@ describe("Beacon Class", function () {
     beforeAll(async () => {
         beacon = new TestBeacon("Testing Beacon: " + faker.person.fullName(), "https://localhost");
         await beacon.requestToken("MindoverMatter");
-        await beacon.addUser(userToTarget.name);
-        await beacon.interfaceCreated(interfaceToTarget);
-        await beacon.processCreated(appInfo);
-        let ifaces = await Beacon.getNetworkInterfaces();
-        let users = (await Beacon.getUsers()).map((u) => {
-            let user: Beacon.user = {
-                lastUpdate: new Date().getTime(),
-                loggedIn: true,
-                logins: [{ ...u, name: u.user, date: new Date(u.date).getTime() }],
-                name: u.user,
-            };
-            return user;
-        });
-        let apps = (await Beacon.getProcesses()).map((a) => {
-            let app: Beacon.application = {
-                name: a.name,
-                running: true,
-                spawns: [a],
-            };
-            return app;
-        });
-        let services = await Beacon.getNetworkListening();
-        let networkInterfaces: Beacon.networkInterface[];
-        if (!Array.isArray(ifaces)) {
-            networkInterfaces = [{ ...ifaces, state: ifaces.operstate === "up" ? "up" : "down" }];
-        } else {
-            networkInterfaces = ifaces.map((i) => {
-                return { ...i, state: i.operstate === "up" ? "up" : "down" };
-            });
-        }
-        await beacon.sendInit(users, networkInterfaces, apps, services);
+        await beacon.addUserEvent(userToTarget.name);
+        await beacon.interfaceCreatedEvent(interfaceToTarget);
+        await beacon.processCreatedEvent(appInfo);
+        await beacon.init();
+        await beacon.startListening()
     }, 30000);
     let userToAddAndDelete = faker.internet.userName();
     it("should add a user", async function () {
-        const response = await beacon.addUser(userToAddAndDelete);
+        const response = await beacon.addUserEvent(userToAddAndDelete);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should delete a user", async function () {
-        const response = await beacon.delUser(userToAddAndDelete);
+        const response = await beacon.delUserEvent(userToAddAndDelete);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log on a user", async function () {
-        const response = await beacon.loginUser(userToTarget, true);
+        const response = await beacon.loginUserEvent(userToTarget, true);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
     it("should log off a user", async function () {
-        const response = await beacon.loginUser(userToTarget, false);
+        const response = await beacon.loginUserEvent(userToTarget, false);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
     it("should change user group", async function () {
-        const response = await beacon.groupChange(userToTarget.name, faker.word.sample());
+        const response = await beacon.groupChangeEvent(userToTarget.name, faker.word.sample());
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log file accessed", async function () {
-        const response = await beacon.fileAccessed(faker.system.fileName(), {
+        const response = await beacon.fileAccessedEvent(faker.system.fileName(), {
             username: faker.internet.userName(),
             permissions: faker.word.sample(),
             path: faker.system.filePath(),
@@ -106,7 +80,7 @@ describe("Beacon Class", function () {
     });
 
     it("should log file created", async function () {
-        const response = await beacon.fileCreated(appToTarget.name, {
+        const response = await beacon.fileCreatedEvent(appToTarget.name, {
             username: faker.internet.userName(),
             permissions: faker.word.sample(),
             path: faker.system.filePath(),
@@ -116,7 +90,7 @@ describe("Beacon Class", function () {
     });
 
     it("should log file deleted", async function () {
-        const response = await beacon.fileDeleted(appToTarget.name, {
+        const response = await beacon.fileDeletedEvent(appToTarget.name, {
             username: faker.internet.userName(),
             permissions: faker.word.sample(),
             path: faker.system.filePath(),
@@ -126,7 +100,7 @@ describe("Beacon Class", function () {
     });
 
     it("should log file permissions change", async function () {
-        const response = await beacon.filePermissionsChange(appToTarget.name, {
+        const response = await beacon.filePermissionsChangeEvent(appToTarget.name, {
             username: faker.internet.userName(),
             permissions: faker.word.sample(),
             path: faker.system.filePath(),
@@ -147,61 +121,61 @@ describe("Beacon Class", function () {
         ip6subnet: faker.internet.ipv6(),
     };
     it("should log interface created", async function () {
-        const response = await beacon.interfaceCreated(interfaceToCreateAndDelete);
+        const response = await beacon.interfaceCreatedEvent(interfaceToCreateAndDelete);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
     it("should log interface up", async function () {
-        const response = await beacon.interfaceUp(interfaceToTarget);
+        const response = await beacon.interfaceUpEvent(interfaceToTarget);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log interface down", async function () {
-        const response = await beacon.interfaceDown(interfaceToTarget);
+        const response = await beacon.interfaceDownEvent(interfaceToTarget);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log interface deleted", async function () {
-        const response = await beacon.interfaceDeleted(interfaceToCreateAndDelete);
+        const response = await beacon.interfaceDeletedEvent(interfaceToCreateAndDelete);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log interface IP change", async function () {
         interfaceToTarget.ip4 = faker.internet.ipv4();
-        const response = await beacon.interfaceIpChange(interfaceToTarget, "4");
+        const response = await beacon.interfaceIpChangeEvent(interfaceToTarget, "4");
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log process created", async function () {
-        const response = await beacon.processCreated(appInfo);
+        const response = await beacon.processCreatedEvent(appInfo);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log process ended", async function () {
-        const response = await beacon.processEnded(appInfo);
+        const response = await beacon.processEndedEvent(appInfo);
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log registry edit", async function () {
-        const response = await beacon.regEdit(faker.word.sample(), faker.word.sample(), { username: faker.internet.userName() });
+        const response = await beacon.regEditEvent(faker.word.sample(), faker.word.sample(), { username: faker.internet.userName() });
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log kernel event", async function () {
-        const response = await beacon.kernel(faker.system.fileName(), faker.system.filePath(), { username: faker.internet.userName() });
+        const response = await beacon.kernelEvent(faker.system.fileName(), faker.system.filePath(), { username: faker.internet.userName() });
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
 
     it("should log config event", async function () {
-        const response = await beacon.config(faker.system.fileName(), faker.system.filePath(), { username: faker.internet.userName() });
+        const response = await beacon.configEvent(faker.system.fileName(), faker.system.filePath(), { username: faker.internet.userName() });
         if (!response) return expect(response).toBe({ status: "success" });
         expect(response.status).toBe("success");
     });
@@ -209,5 +183,6 @@ describe("Beacon Class", function () {
     afterAll(async () => {
         // const response = await beacon.delete();
         // console.log(response);
+        await beacon.stopListening()
     });
 });
